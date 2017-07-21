@@ -17,7 +17,7 @@ from email import Encoders
 from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
-from email.Utils import formatdate
+ from email.Utils import formatdate
 
 import shutil  # for coping files (like ecr attachments)
 
