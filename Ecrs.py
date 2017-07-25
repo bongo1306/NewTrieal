@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-import wx		#wxWidgets used as the GUI
+import wx  # wxWidgets used as the GUI
 from wx.html import HtmlEasyPrinting
-from wx import xrc		#allows the loading and access of xrc file (xml) that describes GUI
+from wx import xrc  # allows the loading and access of xrc file (xml) that describes GUI
 import wx.grid as gridlib
 from wxPython.calendar import *
-ctrl = xrc.XRCCTRL		#define a shortined function name (just for convienience)
+
+ctrl = xrc.XRCCTRL  # define a shortined function name (just for convienience)
 
 import traceback
-import xlwt	#for writing data to excel files
+import xlwt  # for writing data to excel files
 
-#for sending emails
+# for sending emails
 import smtplib
 from email import Encoders
 from email.MIMEBase import MIMEBase
@@ -18,11 +19,11 @@ from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 
-import shutil #for coping files (like ecr attachments)
+import shutil  # for coping files (like ecr attachments)
 
-import pyodbc #for connecting to dbworks database
+import pyodbc  # for connecting to dbworks database
 
-from threading import Thread #so a slow querry won't make the gui lag (ONLY FOR READS NOT WRITES!)
+from threading import Thread  # so a slow querry won't make the gui lag (ONLY FOR READS NOT WRITES!)
 import sys
 import os
 import stat
@@ -33,15 +34,15 @@ import Database
 import General
 import OrderFileOpeners
 import ECRev
-#import Printer
+
+# import Printer
 
 
-#reasons_needing_approval = ['Part Substitution', 'Customer Change', 'Agency Approval', 'Platform Change', 'Continuing Improvement', 'Spec Alignment']
+# reasons_needing_approval = ['Part Substitution', 'Customer Change', 'Agency Approval', 'Platform Change', 'Continuing Improvement', 'Spec Alignment']
 
 reasons_needing_approval = [
-"Customer Change",
+    "Customer Change",
 ]
-
 
 
 def export_for_approval(event):
@@ -67,7 +68,7 @@ def export_for_approval(event):
 
     ctrl(General.app.main_frame, 'button:export_for_committee').Disable()
 
-    #make that excel read only yo
+    # make that excel read only yo
     os.chmod(General.resource_path('CommitteeECRs.xlsm'), stat.S_IREAD)
 
     cursor = Database.connection.cursor()
@@ -106,7 +107,6 @@ def export_for_approval(event):
 
     ecrs_data = new_records
 
-
     '''
     ecrs_data = cursor.execute(''
         SELECT 
@@ -133,32 +133,35 @@ def export_for_approval(event):
     #	ORDER BY when_requested DESC		
     #	''.format(approval_reasons_string)).fetchall()'''
 
-    headers = ['ID', 'Ref#', 'Owner', 'Primary Code', 'Secondary Code', 'Status', 'Priority', 'Request', 'Changes Required', 'Department', 'Who Requested', 'When Requested', 'When Needed']
+    headers = ['ID', 'Ref#', 'Owner', 'Primary Code', 'Secondary Code', 'Status', 'Priority', 'Request',
+               'Changes Required', 'Department', 'Who Requested', 'When Requested', 'When Needed']
 
     with open(General.resource_path("CommitteeECRs.txt"), "w") as text_file:
-        #write out headers
+        # write out headers
         text_file.write('{}\n'.format('`````'.join(headers)))
 
-        #write out data
+        # write out data
         for ecr_index, ecr_data in enumerate(ecrs_data):
             formatted_ecr_data = []
 
             for field_index, field in enumerate(ecr_data):
                 if field_index == 2:
-                    #field = 'owna!'
+                    # field = 'owna!'
                     pass
 
                 if field_index == 3:
                     secondary_code = field
 
-                    primary_code = cursor.execute("SELECT primary_code FROM secondary_ecr_reason_codes WHERE code = '{}'".format(secondary_code)).fetchall()
-                    #print primary_code
+                    primary_code = cursor.execute(
+                        "SELECT primary_code FROM secondary_ecr_reason_codes WHERE code = '{}'".format(
+                            secondary_code)).fetchall()
+                    # print primary_code
 
                     if primary_code:
                         primary_code = primary_code[0][0]
 
                     if not primary_code:
-                        #old secondary code mappings to primary
+                        # old secondary code mappings to primary
                         if secondary_code == 'AE Revision': primary_code = 'Order Revision'
                         if secondary_code == 'Agency Approval': primary_code = 'Regulatory'
                         if secondary_code == 'BOM Reconciliation': primary_code = 'Order Revision'
@@ -214,11 +217,12 @@ def export_for_approval(event):
 
 
 def get_similar_items(item):
-    #find items that could be similarly affected by the issue in this ECR
+    # find items that could be similarly affected by the issue in this ECR
     try:
         cursor = Database.connection.cursor()
 
-        customer, family = cursor.execute("SELECT customer, family FROM {} WHERE item='{}'".format(table_used, item)).fetchone()
+        customer, family = cursor.execute(
+            "SELECT customer, family FROM {} WHERE item='{}'".format(table_used, item)).fetchone()
 
         sql = '''
             SELECT
@@ -239,7 +243,8 @@ def get_similar_items(item):
                 {}.is_canceled = 0
             ORDER BY
                 {}.item
-        '''.format(table_used, table_used, table_used, table_used, table_used, item, table_used, customer.replace("'", "''"), table_used, family, table_used, table_used, table_used, table_used)
+        '''.format(table_used, table_used, table_used, table_used, table_used, item, table_used,
+                   customer.replace("'", "''"), table_used, family, table_used, table_used, table_used, table_used)
         similar_items = cursor.execute(sql).fetchall()
 
         sales_orders = list(set(zip(*similar_items)[0]))
@@ -257,8 +262,10 @@ def get_similar_items(item):
             similar_text = similar_text[:-2]
             similar_text += '     '
 
-        try: similar_text = similar_text[:-4]
-        except: pass
+        try:
+            similar_text = similar_text[:-4]
+        except:
+            pass
 
         return (similar_text, similar_items)
 
@@ -324,6 +331,7 @@ def on_click_approve_1_for_close(event):
 
     ctrl(General.app.close_ecr_dialog, 'panel:committee').Layout()
 
+
 def on_click_approve_2_for_close(event):
     button = event.GetEventObject()
 
@@ -337,13 +345,13 @@ def on_click_approve_2_for_close(event):
     ctrl(General.app.close_ecr_dialog, 'panel:committee').Layout()
 
 
-
 def get_cleaned_list_headers(list):
     headers = []
     for col in range(list.GetColumnCount()):
         headers.append(list.GetColumn(col).GetText().replace(u'↓', '').replace(u'↑', '').strip())
 
     return headers
+
 
 def set_list_headers(list, headers):
     list.DeleteAllColumns()
@@ -397,10 +405,10 @@ def check_description_for_parts(event):
     except:
         print 'Failed to connect to DBworks database'
 '''
-#Set table to be used from database based on Plant selection during Login event
+# Set table to be used from database based on Plant selection during Login event
 table_used = ''
 
-#Update Prod_Plant value based on Plant selected during Login event
+# Update Prod_Plant value based on Plant selected during Login event
 Prod_Plant = ''
 """
 if table_used == "orders_cases":
@@ -411,15 +419,16 @@ else:
      Prod_Plant = ''
 """
 
+
 def check_reference_field(event):
     entry = ctrl(General.app.new_ecr_dialog, 'text:reference_number').GetValue()
 
-    #ctrl(General.app.main_frame, 'statusbar:main').SetStatusText('')
+    # ctrl(General.app.main_frame, 'statusbar:main').SetStatusText('')
     clear_useful_info_panel()
 
-    #determine reference type by entry length and other defining characteristics
+    # determine reference type by entry length and other defining characteristics
     if (len(entry) == 7) and (entry[0] == '0'):
-        #it might be an item number, search for it in the DB
+        # it might be an item number, search for it in the DB
         sql = "SELECT * FROM {} WHERE item LIKE '%{}%'".format(table_used, entry)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
@@ -431,49 +440,49 @@ def check_reference_field(event):
         thread.start()
 
     elif '-' in entry:
-        #it might be a sales order with specified line up, search for it in the DB
+        # it might be a sales order with specified line up, search for it in the DB
         sales_order = entry.split('-')[0]
         line_up = 1
         if entry.split('-')[1] != '':
             line_up = int(float(entry.split('-')[1]))
-        sql = "SELECT * FROM {} WHERE sales_order LIKE '%{}%' AND line_up = '{}'".format(table_used, sales_order, line_up)
+        sql = "SELECT * FROM {} WHERE sales_order LIKE '%{}%' AND line_up = '{}'".format(table_used, sales_order,
+                                                                                         line_up)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
 
     elif (len(entry) == 9) and (entry[0:3] == 'KW0'):
-        #it might be an item number with KW prefix, search for it in the DB
+        # it might be an item number with KW prefix, search for it in the DB
         sql = "SELECT * FROM {} WHERE item LIKE '%{}%'".format(table_used, entry)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
 
     elif len(entry) == 8 and entry[0] == '2':
-        #it might be a sales order, search for it in the DB
+        # it might be a sales order, search for it in the DB
         sql = "SELECT * FROM {} WHERE item LIKE '%{}%'".format(table_used, entry)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
 
 
     elif len(entry) == 10:
-        #it might be a serial number, search for it in the DB
+        # it might be a serial number, search for it in the DB
         sql = "SELECT * FROM {} WHERE serial = \'{}\'".format(table_used, entry)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
 
 
     elif len(entry) == 6:
-        #it might be a sales order, search for it in the DB
+        # it might be a sales order, search for it in the DB
         sql = "SELECT * FROM {} WHERE sales_order LIKE '%{}%' OR quote = \'{}\'".format(table_used, entry, entry)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
 
     elif len(entry) == 8 and entry[0] == '5':
-        #it might be a sales order, search for it in the DB
+        # it might be a sales order, search for it in the DB
         sql = "SELECT * FROM {} WHERE sales_order LIKE '%{}%'".format(table_used, entry)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
     else:
         clear_useful_info_panel()
-
 
 
 def clear_useful_info_panel():
@@ -491,10 +500,10 @@ def clear_useful_info_panel():
     ctrl(General.app.new_ecr_dialog, 'label:state').SetLabel('...')
     ctrl(General.app.new_ecr_dialog, 'label:country').SetLabel('...')
 
-    #ctrl(General.app.new_ecr_dialog, 'label:mechanical').SetLabel('...')
-    #ctrl(General.app.new_ecr_dialog, 'label:electrical').SetLabel('...')
-    #ctrl(General.app.new_ecr_dialog, 'label:structural').SetLabel('...')
-    #ctrl(General.app.new_ecr_dialog, 'label:program').SetLabel('...')
+    # ctrl(General.app.new_ecr_dialog, 'label:mechanical').SetLabel('...')
+    # ctrl(General.app.new_ecr_dialog, 'label:electrical').SetLabel('...')
+    # ctrl(General.app.new_ecr_dialog, 'label:structural').SetLabel('...')
+    # ctrl(General.app.new_ecr_dialog, 'label:program').SetLabel('...')
 
     ctrl(General.app.new_ecr_dialog, 'label:order_status').SetLabel('...')
     ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel('...')
@@ -533,6 +542,7 @@ def export_search_results(event):
     wx.MessageBox('Export completed.', 'Info', wx.OK | wx.ICON_INFORMATION)
 '''
 
+
 def hide_search_ecrs_dialog(event):
     event.GetEventObject().Hide()
 
@@ -540,7 +550,8 @@ def hide_search_ecrs_dialog(event):
 def hide_things_based_on_user_department():
     cursor = Database.connection.cursor()
 
-    department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    department = cursor.execute(
+        'SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
 
     if (department != 'Design Engineering') and (department != 'Applications Engineering'):
         ctrl(General.app.main_frame, 'static:mechanical').Hide()
@@ -568,12 +579,12 @@ def hide_things_based_on_user_department():
 
 
 def on_click_attatch_document(event):
-    dialog = wx.FileDialog(None, style=wx.OPEN|wx.MULTIPLE)
+    dialog = wx.FileDialog(None, style=wx.OPEN | wx.MULTIPLE)
 
     if dialog.ShowModal() == wx.ID_OK:
         file_paths = dialog.GetPaths()
 
-        #write the file names to the text box and write the full file
+        # write the file names to the text box and write the full file
         # name with path to the hidden text box next to it so we can read it later
         files_string = ''
         files_with_path_string = ''
@@ -594,7 +605,6 @@ def on_click_attatch_document(event):
     dialog.Destroy()
 
 
-
 def on_click_claim_ecr(event):
     ecr_id = ctrl(General.app.main_frame, 'label:ecr_panel_id').GetLabel()
     if ecr_id == '':
@@ -603,7 +613,7 @@ def on_click_claim_ecr(event):
     cursor = Database.connection.cursor()
     cursor.execute('''
         UPDATE ecrs SET who_claimed=\'{}\', when_claimed=\'{}\' WHERE id=\'{}\'
-        '''.format(General.app.current_user, str(dt.datetime.today())[:19],  ecr_id))
+        '''.format(General.app.current_user, str(dt.datetime.today())[:19], ecr_id))
     Database.connection.commit()
 
     refresh_my_ecrs_list()
@@ -614,32 +624,35 @@ def on_click_claim_ecr(event):
     populate_ecr_panel(ecr_id)
 
 
-
 def on_click_close_ecr(event):
     if ctrl(General.app.close_ecr_dialog, 'choice:ecr_reason').GetStringSelection() == 'Engineering Error':
         if ctrl(General.app.close_ecr_dialog, 'choice:who_errored').GetStringSelection() == '':
-            wx.MessageBox('Since this is an Engineering Error, you must select who errored before closing the ECR.', 'Hint', wx.OK | wx.ICON_WARNING)
+            wx.MessageBox('Since this is an Engineering Error, you must select who errored before closing the ECR.',
+                          'Hint', wx.OK | wx.ICON_WARNING)
             return
 
         if ctrl(General.app.close_ecr_dialog, 'choice:ecr_component').GetStringSelection() == '':
-            wx.MessageBox('Since this is an Engineering Error, you must select the applicable component before closing the ECR.', 'Hint', wx.OK | wx.ICON_WARNING)
+            wx.MessageBox(
+                'Since this is an Engineering Error, you must select the applicable component before closing the ECR.',
+                'Hint', wx.OK | wx.ICON_WARNING)
             return
 
         if ctrl(General.app.close_ecr_dialog, 'choice:ecr_sub_system').GetStringSelection() == '':
-            wx.MessageBox('Since this is an Engineering Error, you must select the applicable sub system before closing the ECR.', 'Hint', wx.OK | wx.ICON_WARNING)
+            wx.MessageBox(
+                'Since this is an Engineering Error, you must select the applicable sub system before closing the ECR.',
+                'Hint', wx.OK | wx.ICON_WARNING)
             return
-
 
     if ctrl(General.app.close_ecr_dialog, 'text:resolution').GetValue().strip() == '':
         wx.MessageBox('Please enter a descriptive resolution before closing the ECR.', 'Hint', wx.OK | wx.ICON_WARNING)
         return
 
     need_by_date = ctrl(General.app.close_ecr_dialog, 'calendar:ecr_need_by').GetDate()
-    need_by_date = dt.date(need_by_date.GetYear(),need_by_date.GetMonth()+1,need_by_date.GetDay())
+    need_by_date = dt.date(need_by_date.GetYear(), need_by_date.GetMonth() + 1, need_by_date.GetDay())
 
     cursor = Database.connection.cursor()
 
-    #department = cursor.execute('SELECT department FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
+    # department = cursor.execute('SELECT department FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
 
     ##attachment_string = ctrl(General.app.close_ecr_dialog, 'text:attached_document_paths').GetValue()
     '''
@@ -662,14 +675,19 @@ def on_click_close_ecr(event):
     '''
 
     type = General.app.ecr_type
-    reference_number = ctrl(General.app.close_ecr_dialog, 'text:reference_number').GetValue().replace("'", "''").replace('\"', "''''")
+    reference_number = ctrl(General.app.close_ecr_dialog, 'text:reference_number').GetValue().replace("'",
+                                                                                                      "''").replace(
+        '\"', "''''")
     item_number = Database.get_item_from_ref(reference_number)
     reason = ctrl(General.app.close_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
     document = ctrl(General.app.close_ecr_dialog, 'choice:ecr_document').GetStringSelection()
     request = ctrl(General.app.close_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''")
     when_needed = need_by_date
-    resolution = ctrl(General.app.close_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"', "''''")
-    who_errored = ctrl(General.app.close_ecr_dialog, 'choice:who_errored').GetStringSelection().replace("'", "''").replace('\"', "''''")
+    resolution = ctrl(General.app.close_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"',
+                                                                                                             "''''")
+    who_errored = ctrl(General.app.close_ecr_dialog, 'choice:who_errored').GetStringSelection().replace("'",
+                                                                                                        "''").replace(
+        '\"', "''''")
     who_closed = General.app.current_user
     when_closed = str(dt.datetime.today())[:19]
     id = General.app.close_ecr_dialog.GetTitle().split(' ')[-1]
@@ -677,7 +695,7 @@ def on_click_close_ecr(event):
     who_approved_second = ctrl(General.app.close_ecr_dialog, 'label:who_approved_second').GetLabel()
     priority = ctrl(General.app.close_ecr_dialog, 'spin:priority').GetValue()
 
-    #track if someone is changing the reason code
+    # track if someone is changing the reason code
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(id)).fetchone()[0]
     new_reason_code = reason
     if previous_reason_code != new_reason_code:
@@ -689,7 +707,6 @@ def on_click_close_ecr(event):
         sql += "'{}')".format(new_reason_code)
         sql += '\'{}\', '.format(Prod_Plant)
         cursor.execute(sql)
-
 
     sql = 'UPDATE ecrs SET '
     sql += 'type=\'{}\', '.format(type)
@@ -715,9 +732,9 @@ def on_click_close_ecr(event):
     sql += 'who_closed=\'{}\', '.format(who_closed)
     sql += 'when_closed=\'{}\', '.format(when_closed)
 
-    #if who_approved_first != '':
+    # if who_approved_first != '':
     #	sql += 'who_approved_first=\'{}\', '.format(who_approved_first)
-    #if who_approved_second != '':
+    # if who_approved_second != '':
     #	sql += 'who_approved_second=\'{}\', '.format(who_approved_second)
 
     if who_approved_first == '':
@@ -732,7 +749,6 @@ def on_click_close_ecr(event):
 
     sql += 'approval_stage=\'{}\', '.format(ctrl(General.app.close_ecr_dialog, 'choice:stage').GetStringSelection())
 
-
     component = ctrl(General.app.close_ecr_dialog, 'choice:ecr_component').GetStringSelection()
     if component != '':
         sql += "component='{}', ".format(component.replace("'", "''").replace('\"', "''''"))
@@ -744,7 +760,6 @@ def on_click_close_ecr(event):
         sql += "sub_system='{}', ".format(sub_system.replace("'", "''").replace('\"', "''''"))
     else:
         sql += "sub_system=NULL, "
-
 
     severity = ctrl(General.app.close_ecr_dialog, 'choice:ecr_severity').GetStringSelection()
     if severity == 'High':
@@ -766,24 +781,30 @@ def on_click_close_ecr(event):
     cursor.execute("UPDATE ecrs SET attachment = NULL WHERE attachment = ''")
     Database.connection.commit()
 
-    ecr = cursor.execute('SELECT TOP 1 id, reference_number, request, resolution, who_requested, who_errored, item, type, document FROM ecrs WHERE id = \'{}\''.format(id)).fetchone()
-    #order = Database.get_order_data_from_ref(reference_number)
+    ecr = cursor.execute(
+        'SELECT TOP 1 id, reference_number, request, resolution, who_requested, who_errored, item, type, document FROM ecrs WHERE id = \'{}\''.format(
+            id)).fetchone()
+    # order = Database.get_order_data_from_ref(reference_number)
     order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[6])).fetchone()
 
-    #takes a little longer to send an email so put it in a serperate thread so user
+    # takes a little longer to send an email so put it in a serperate thread so user
     # doesn't have to wait around :)
-    sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    sender = \
+    cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[
+        0]
 
-    #email person who originally entered the ECR
-    reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(ecr[4].replace("'", "''").replace('\"', "''''"))).fetchone()[0]
+    # email person who originally entered the ECR
+    reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(
+        ecr[4].replace("'", "''").replace('\"', "''''"))).fetchone()[0]
     Thread(target=send_ecr_closed_email, args=(ecr, order, reciever, sender)).start()
 
-    #email the engineer who errored
+    # email the engineer who errored
     if who_errored != '':
-        reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(ecr[5].replace("'", "''").replace('\"', "''''"))).fetchone()[0]
+        reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(
+            ecr[5].replace("'", "''").replace('\"', "''''"))).fetchone()[0]
         Thread(target=send_ecr_soe_email, args=(ecr, order, reciever, sender)).start()
 
-    #email people who worked on items that may be similarly affected by this ECR
+    # email people who worked on items that may be similarly affected by this ECR
     if ctrl(General.app.close_ecr_dialog, 'checkbox:similar_ecrs').GetValue() == True:
         similar_items_data = get_similar_items(item_number)
         if similar_items_data:
@@ -806,7 +827,7 @@ def on_click_close_ecr(event):
                 elif type == 'Other':
                     reciever_names.append(project_lead)
 
-                #if no one assigned to that post... call out project lead
+                # if no one assigned to that post... call out project lead
                 if reciever_names[-1] == None:
                     reciever_names.append(project_lead)
 
@@ -815,14 +836,15 @@ def on_click_close_ecr(event):
 
             for reciever_name in reciever_names:
                 if reciever_name:
-                    result = cursor.execute("SELECT TOP 1 email FROM employees WHERE name = '{}'".format(reciever_name.replace("'", "''"))).fetchone()
+                    result = cursor.execute("SELECT TOP 1 email FROM employees WHERE name = '{}'".format(
+                        reciever_name.replace("'", "''"))).fetchone()
                     if result:
                         reciever_emails.append(result[0])
 
             reciever_emails = list(set(reciever_emails))
 
-            Thread(target=send_similar_items_email, args=(order, ecr, similar_items_data[1], reciever_emails, sender)).start()
-
+            Thread(target=send_similar_items_email,
+                   args=(order, ecr, similar_items_data[1], reciever_emails, sender)).start()
 
     refresh_my_ecrs_list()
     refresh_open_ecrs_list()
@@ -847,13 +869,15 @@ def on_click_open_attachments(event):
         return
 
     cursor = Database.connection.cursor()
-    attachment_files = cursor.execute('SELECT TOP 1 attachment FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()[0]
+    attachment_files = cursor.execute('SELECT TOP 1 attachment FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()[
+        0]
 
     for attachment_file in attachment_files.split(';'):
         try:
             os.startfile('{}\\{}'.format(General.attachment_directory, attachment_file))
         except:
-            wx.MessageBox('Could not open file: {}\\{}'.format(General.attachment_directory, attachment_file), 'Error', wx.OK | wx.ICON_ERROR)
+            wx.MessageBox('Could not open file: {}\\{}'.format(General.attachment_directory, attachment_file), 'Error',
+                          wx.OK | wx.ICON_ERROR)
 
 
 def on_click_open_close_ecr_form(event):
@@ -885,10 +909,8 @@ def on_click_open_duplicate_ecr_form(event):
     General.app.init_new_ecr_dialog(ecr_id)
 
 
-
 def on_click_open_search_ecrs_form(event):
     General.app.init_search_ecrs_dialog()
-
 
 
 def on_click_print_ecr(event):
@@ -898,8 +920,10 @@ def on_click_print_ecr(event):
         return
 
     cursor = Database.connection.cursor()
-    #order = cursor.execute('SELECT TOP 1 item, sales_order, line_up, customer, city, state, model, mechanical_by, electrical_by, structural_by FROM {} WHERE item = \'{}\''.format(table_used, item_number)).fetchone()
-    ecr = cursor.execute('SELECT TOP 1 id, reference_number, document, reason, who_requested, department, when_needed, request, resolution FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()
+    # order = cursor.execute('SELECT TOP 1 item, sales_order, line_up, customer, city, state, model, mechanical_by, electrical_by, structural_by FROM {} WHERE item = \'{}\''.format(table_used, item_number)).fetchone()
+    ecr = cursor.execute(
+        'SELECT TOP 1 id, reference_number, document, reason, who_requested, department, when_needed, request, resolution FROM ecrs WHERE id = \'{}\''.format(
+            ecr_id)).fetchone()
 
     order = cursor.execute('''
         SELECT TOP 1
@@ -918,7 +942,8 @@ def on_click_print_ecr(event):
             item_responsibilities2.structural_cad_designer
         FROM {} LEFT JOIN item_responsibilities2 ON {}.item = item_responsibilities2.item WHERE
             {}.item = '{}'	
-        '''.format(table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used,item_number)).fetchone()
+        '''.format(table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used,
+                   table_used, table_used, table_used, table_used, table_used, item_number)).fetchone()
 
     html_to_print = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>'''
 
@@ -927,7 +952,7 @@ def on_click_print_ecr(event):
         mechanical_by, electrical_by, structural_by, \
         mechanical_cad_designer, electrical_cad_designer, structural_cad_designer = order
 
-        #use who done its from item_responsibilities if there... otherwise use from filemaker
+        # use who done its from item_responsibilities if there... otherwise use from filemaker
         if mechanical_cad_designer: mechanical_by = mechanical_cad_designer
         if electrical_cad_designer: electrical_by = electrical_cad_designer
         if structural_cad_designer: structural_by = structural_cad_designer
@@ -944,7 +969,8 @@ def on_click_print_ecr(event):
         <tr><td align=\"right\">Structural&nbsp;by:&nbsp;</td><td>{}</td></tr>
         </table>
         <hr>
-        '''.format(item, sales_order, line_up, customer, city, state, model, mechanical_by, electrical_by, structural_by)
+        '''.format(item, sales_order, line_up, customer, city, state, model, mechanical_by, electrical_by,
+                   structural_by)
 
     html_to_print += '''
         <table border="0">
@@ -965,30 +991,34 @@ def on_click_print_ecr(event):
     printer.PrintText(html_to_print)
 
 
-
 def on_click_submit_ecr(event):
-    #check that field entries are valid_boundary
+    # check that field entries are valid_boundary
     if ctrl(General.app.new_ecr_dialog, 'choice:ecr_reason').GetStringSelection() == '':
-        wx.MessageBox('You must select a reason for request from the drop down menu\nbefore submitting a new ECR.', 'Hint', wx.OK | wx.ICON_WARNING)
+        wx.MessageBox('You must select a reason for request from the drop down menu\nbefore submitting a new ECR.',
+                      'Hint', wx.OK | wx.ICON_WARNING)
         return
 
     if ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').GetStringSelection() == '':
-        wx.MessageBox('You must select a document from the drop down menu\nbefore submitting a new ECR.', 'Hint', wx.OK | wx.ICON_WARNING)
+        wx.MessageBox('You must select a document from the drop down menu\nbefore submitting a new ECR.', 'Hint',
+                      wx.OK | wx.ICON_WARNING)
         return
 
     if ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().strip() == '':
-        wx.MessageBox('You must enter a request description before submitting a new ECR.\nThe more descriptive, the faster the answer.', 'Hint', wx.OK | wx.ICON_WARNING)
+        wx.MessageBox(
+            'You must enter a request description before submitting a new ECR.\nThe more descriptive, the faster the answer.',
+            'Hint', wx.OK | wx.ICON_WARNING)
         return
 
     need_by_date = ctrl(General.app.new_ecr_dialog, 'calendar:ecr_need_by').GetDate()
-    need_by_date = dt.date(need_by_date.GetYear(),need_by_date.GetMonth()+1,need_by_date.GetDay())
+    need_by_date = dt.date(need_by_date.GetYear(), need_by_date.GetMonth() + 1, need_by_date.GetDay())
     if need_by_date < dt.date.today():
         wx.MessageBox('You cannot request a need by date from the past...', 'Hint', wx.OK | wx.ICON_WARNING)
         return
 
     cursor = Database.connection.cursor()
 
-    department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    department = cursor.execute(
+        'SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
 
     attachment_string = ctrl(General.app.new_ecr_dialog, 'text:attached_document_paths').GetValue()
 
@@ -1000,16 +1030,20 @@ def on_click_submit_ecr(event):
 
             attachment_string = ''
             for attachment in attachment_files:
-                attachment_string += ';{}_{}'.format(last_id+1, attachment.split('\\')[-1])
+                attachment_string += ';{}_{}'.format(last_id + 1, attachment.split('\\')[-1])
 
-                shutil.copyfile(attachment, '{}\\{}_{}'.format(General.attachment_directory, last_id+1, attachment.split('\\')[-1]))
+                shutil.copyfile(attachment, '{}\\{}_{}'.format(General.attachment_directory, last_id + 1,
+                                                               attachment.split('\\')[-1]))
 
             attachment_string = attachment_string[1:]
     except:
-        wx.MessageBox('ECR could not be submitted with those attachments for some reason...\n\n{}'.format(traceback.format_exc()), 'An error occurred!', wx.OK | wx.ICON_ERROR)
+        wx.MessageBox(
+            'ECR could not be submitted with those attachments for some reason...\n\n{}'.format(traceback.format_exc()),
+            'An error occurred!', wx.OK | wx.ICON_ERROR)
         return
 
-    reference_number = ctrl(General.app.new_ecr_dialog, 'text:reference_number').GetValue().replace("'", "''").replace('\"', "''''")
+    reference_number = ctrl(General.app.new_ecr_dialog, 'text:reference_number').GetValue().replace("'", "''").replace(
+        '\"', "''''")
     item_number = Database.get_item_from_ref(reference_number)
 
     new_id = cursor.execute("SELECT MAX(id) FROM ecrs").fetchone()[0] + 1
@@ -1025,7 +1059,8 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(department)
         sql += '\'{}\', '.format(General.app.current_user)
         sql += '\'{}\', '.format(General.app.ecr_type)
-        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+        sql += '\'{}\', '.format(
+            ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{} 23:59:00\')'.format(need_by_date)
@@ -1040,13 +1075,14 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(department)
         sql += '\'{}\', '.format(General.app.current_user)
         sql += '\'{}\', '.format(General.app.ecr_type)
-        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+        sql += '\'{}\', '.format(
+            ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{} 23:59:00\')'.format(need_by_date)
         sql += '\'{}\', '.format(Prod_Plant)
 
-    #print sql
+    # print sql
     cursor.execute(sql)
     cursor.execute("UPDATE ecrs SET attachment = NULL WHERE attachment = ''")
 
@@ -1059,11 +1095,11 @@ def on_click_submit_ecr(event):
 
 def on_click_modify_ecr(event):
     need_by_date = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
-    need_by_date = dt.date(need_by_date.GetYear(),need_by_date.GetMonth()+1,need_by_date.GetDay())
+    need_by_date = dt.date(need_by_date.GetYear(), need_by_date.GetMonth() + 1, need_by_date.GetDay())
 
     cursor = Database.connection.cursor()
 
-    #department = cursor.execute('SELECT department FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
+    # department = cursor.execute('SELECT department FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
 
     ##attachment_string = ctrl(General.app.modify_ecr_dialog, 'text:attached_document_paths').GetValue()
     '''
@@ -1087,7 +1123,7 @@ def on_click_modify_ecr(event):
 
     ecr_id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
 
-    #track if someone is changing the reason code
+    # track if someone is changing the reason code
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(ecr_id)).fetchone()[0]
     new_reason_code = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
     if previous_reason_code != new_reason_code:
@@ -1100,8 +1136,9 @@ def on_click_modify_ecr(event):
         sql += '\'{}\', '.format(Prod_Plant)
         cursor.execute(sql)
 
-
-    reference_number = ctrl(General.app.modify_ecr_dialog, 'text:reference_number').GetValue().replace("'", "''").replace('\"', "''''")
+    reference_number = ctrl(General.app.modify_ecr_dialog, 'text:reference_number').GetValue().replace("'",
+                                                                                                       "''").replace(
+        '\"', "''''")
     item_number = Database.get_item_from_ref(reference_number)
 
     sql = 'UPDATE ecrs SET '
@@ -1115,37 +1152,42 @@ def on_click_modify_ecr(event):
 
     sql += 'reason=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection())
     sql += 'document=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_document').GetStringSelection())
-    sql += 'request=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+    sql += 'request=\'{}\', '.format(
+        ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
     sql += 'when_needed=\'{} 23:59:00\', '.format(need_by_date)
-    sql += 'resolution=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"', "''''"))
+    sql += 'resolution=\'{}\', '.format(
+        ctrl(General.app.modify_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"', "''''"))
 
     if ctrl(General.app.modify_ecr_dialog, 'choice:who_errored').GetStringSelection() != '':
-        sql += 'who_errored=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:who_errored').GetStringSelection().replace("'", "''").replace('\"', "''''"))
+        sql += 'who_errored=\'{}\', '.format(
+            ctrl(General.app.modify_ecr_dialog, 'choice:who_errored').GetStringSelection().replace("'", "''").replace(
+                '\"', "''''"))
     else:
         sql += 'who_errored=NULL, '
 
     sql += 'who_modified=\'{}\', '.format(General.app.current_user)
     sql += 'when_modified=\'{}\', '.format(format(str(dt.datetime.today())[:19]))
 
-    #if ctrl(General.app.modify_ecr_dialog, 'label:who_approved_first').GetLabel() != '':
+    # if ctrl(General.app.modify_ecr_dialog, 'label:who_approved_first').GetLabel() != '':
     #	sql += 'who_approved_first=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'label:who_approved_first').GetLabel())
 
-    #if ctrl(General.app.modify_ecr_dialog, 'label:who_approved_second').GetLabel() != '':
+    # if ctrl(General.app.modify_ecr_dialog, 'label:who_approved_second').GetLabel() != '':
     #	sql += 'who_approved_second=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'label:who_approved_second').GetLabel())
 
 
     if ctrl(General.app.modify_ecr_dialog, 'label:who_approved_first').GetLabel() == '':
         sql += 'who_approved_first = NULL, '
     else:
-        sql += 'who_approved_first=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'label:who_approved_first').GetLabel())
+        sql += 'who_approved_first=\'{}\', '.format(
+            ctrl(General.app.modify_ecr_dialog, 'label:who_approved_first').GetLabel())
 
     if ctrl(General.app.modify_ecr_dialog, 'label:who_approved_second').GetLabel() == '':
         sql += 'who_approved_second = NULL, '
     else:
-        sql += 'who_approved_second=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'label:who_approved_second').GetLabel())
+        sql += 'who_approved_second=\'{}\', '.format(
+            ctrl(General.app.modify_ecr_dialog, 'label:who_approved_second').GetLabel())
 
     sql += 'approval_stage=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:stage').GetStringSelection())
-
 
     component = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_component').GetStringSelection()
     if component != '':
@@ -1169,7 +1211,6 @@ def on_click_modify_ecr(event):
     else:
         sql += "severity=1.0, "
 
-
     sql += 'priority=\'{}\' '.format(ctrl(General.app.modify_ecr_dialog, 'spin:priority').GetValue())
     sql += 'WHERE id=\'{}\''.format(ecr_id)
 
@@ -1190,8 +1231,6 @@ def on_click_modify_ecr(event):
     General.app.modify_ecr_dialog.Destroy()
 
 
-
-
 def on_click_add_revisions_with_ecr(event):
     item_number = ctrl(General.app.main_frame, 'label:order_panel_item_number').GetLabel()
     ecr_id = ctrl(General.app.main_frame, 'label:ecr_panel_id').GetLabel()
@@ -1202,31 +1241,31 @@ def on_click_add_revisions_with_ecr(event):
         ctrl(General.app.main_frame, 'notebook:main').SetSelection(1)
 
 
-
 def on_text_ecr_description(event):
     if General.app.dbworks_connection != None:
         entry = ctrl(General.app.new_ecr_dialog, 'text:description').GetValue()
 
-        words = entry.replace(' ',  '|').replace('.',  '|').replace(',',  '|').replace('\n',  '|').split('|')[:-1]
-
+        words = entry.replace(' ', '|').replace('.', '|').replace(',', '|').replace('\n', '|').split('|')[:-1]
 
         for word in words:
             if word not in zip(*General.app.list_of_checked_words_entered)[0]:
 
-                #do a few simple checks to make sure then entry is in item number format before querying the DB
+                # do a few simple checks to make sure then entry is in item number format before querying the DB
                 if len(word) >= 8:
                     if word[-8:][2].isdigit() == False:
                         if word[-8:][1].isdigit() == True:
-                            #see if it's a part number in dbworks...
-                            #print 'hitting database... for word {}'.format(word)
-                            results = General.app.dbworks_cursor.execute('SELECT TOP 1 DESCRIPTION FROM DOCUMENT WHERE KW_PART_NUMBER=\'{}\''.format(word[-8:])).fetchone()
+                            # see if it's a part number in dbworks...
+                            # print 'hitting database... for word {}'.format(word)
+                            results = General.app.dbworks_cursor.execute(
+                                'SELECT TOP 1 DESCRIPTION FROM DOCUMENT WHERE KW_PART_NUMBER=\'{}\''.format(
+                                    word[-8:])).fetchone()
                             if results != None:
                                 if results[0] != '':
                                     General.app.list_of_checked_words_entered.append((word, results[0]))
                             else:
                                 General.app.list_of_checked_words_entered.append((word, None))
 
-        #remove checked words if deleted from text box
+        # remove checked words if deleted from text box
         for index, checked_word in enumerate(zip(*General.app.list_of_checked_words_entered)[0]):
             if checked_word not in words:
                 General.app.list_of_checked_words_entered[index] = (None, None)
@@ -1247,7 +1286,7 @@ def on_select_assign_ecr(event):
     if name != '':
         cursor.execute('''
             UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
-            '''.format(name, str(dt.datetime.today())[:19],  ecr_id))
+            '''.format(name, str(dt.datetime.today())[:19], ecr_id))
     else:
         cursor.execute('''
             UPDATE ecrs SET who_assigned=NULL, when_assigned=NULL WHERE id=\'{}\'
@@ -1255,16 +1294,19 @@ def on_select_assign_ecr(event):
 
     Database.connection.commit()
 
-    ecr = cursor.execute('SELECT TOP 1 id, reference_number, request, resolution, who_requested, who_errored, item FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()
-    #order = Database.get_order_data_from_ref(ecr[1])
+    ecr = cursor.execute(
+        'SELECT TOP 1 id, reference_number, request, resolution, who_requested, who_errored, item FROM ecrs WHERE id = \'{}\''.format(
+            ecr_id)).fetchone()
+    # order = Database.get_order_data_from_ref(ecr[1])
     order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[6])).fetchone()
 
     if name != '':
-        #takes a little longer to send an email so put it in a serperate thread so user
+        # takes a little longer to send an email so put it in a serperate thread so user
         # doesn't have to wait around :)
-        sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+        sender = cursor.execute(
+            'SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
 
-        #email person who was assigned the ECR
+        # email person who was assigned the ECR
         reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(name)).fetchone()[0]
         Thread(target=send_ecr_assigned_email, args=(ecr, order, reciever, sender)).start()
 
@@ -1289,32 +1331,32 @@ def on_select_ecr_item(event):
 
     if item.Name == 'list:my_ecrs':
         if item.GetItem(item.GetFirstSelected(), 0).GetText() == "[more]":
-            refresh_my_ecrs_list(limit=(item.GetItemCount()-1)*2)
+            refresh_my_ecrs_list(limit=(item.GetItemCount() - 1) * 2)
 
     elif item.Name == 'list:closed_ecrs':
         if item.GetItem(item.GetFirstSelected(), 0).GetText() == "[more]":
-            refresh_closed_ecrs_list(limit=(item.GetItemCount()-1)*2)
+            refresh_closed_ecrs_list(limit=(item.GetItemCount() - 1) * 2)
 
     elif item.Name == 'list:my_assigned_ecrs':
         if item.GetItem(item.GetFirstSelected(), 0).GetText() == "[more]":
-            refresh_my_assigned_ecrs_list(limit=(item.GetItemCount()-1)*2)
+            refresh_my_assigned_ecrs_list(limit=(item.GetItemCount() - 1) * 2)
 
     elif item.Name == 'list:committee_ecrs':
         if item.GetItem(item.GetFirstSelected(), 0).GetText() == "[more]":
-            refresh_committee_ecrs_list(limit=(item.GetItemCount()-1)*2)
-
+            refresh_committee_ecrs_list(limit=(item.GetItemCount() - 1) * 2)
 
 
 def on_select_ecr_reason(event):
-    #change the lead time based on what reason was selected
+    # change the lead time based on what reason was selected
     selection = ctrl(General.app.new_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
 
     cursor = Database.connection.cursor()
-    #cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\'".format(selection))
+    # cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\'".format(selection))
     cursor.execute("SELECT lead_time FROM secondary_ecr_reason_codes WHERE code=\'{}\'".format(selection))
 
     lead_time_date = dt.datetime.today() + dt.timedelta(cursor.fetchone()[0])
-    ctrl(General.app.new_ecr_dialog, 'calendar:ecr_need_by').SetDate(wx.DateTimeFromDMY(lead_time_date.day, lead_time_date.month-1, lead_time_date.year))
+    ctrl(General.app.new_ecr_dialog, 'calendar:ecr_need_by').SetDate(
+        wx.DateTimeFromDMY(lead_time_date.day, lead_time_date.month - 1, lead_time_date.year))
 
 
 def on_choice_set_severity_default(event):
@@ -1325,7 +1367,9 @@ def on_choice_set_severity_default(event):
     document = ctrl(dialog, 'choice:ecr_document').GetStringSelection()
 
     cursor = Database.connection.cursor()
-    cursor.execute("SELECT severity_default FROM ecr.severity_defaults WHERE discipline='{}' and component='{}' and document='{}'".format(discipline, component, document))
+    cursor.execute(
+        "SELECT severity_default FROM ecr.severity_defaults WHERE discipline='{}' and component='{}' and document='{}'".format(
+            discipline, component, document))
 
     try:
         severity_default = float(cursor.fetchone()[0])
@@ -1343,8 +1387,6 @@ def on_choice_set_severity_default(event):
         ctrl(dialog, 'choice:ecr_severity').SetStringSelection('High')
 
 
-
-
 '''
 def populate_ecr_fields_from_list(event, tab):
     item = event.GetEventObject()	
@@ -1357,14 +1399,13 @@ def populate_ecr_fields_from_list(event, tab):
 '''
 
 
-
 def populate_ecr_order_panel(item_number):
     cursor = Database.connection.cursor()
 
-    #item_number =
-    #cursor.execute("SELECT * FROM {} WHERE item=\'{}\'".format(table_used, item_number))
-    #query_result = Database.get_order_data_from_ref(ref_number)
-    #query_result = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, item_number)).fetchone()
+    # item_number =
+    # cursor.execute("SELECT * FROM {} WHERE item=\'{}\'".format(table_used, item_number))
+    # query_result = Database.get_order_data_from_ref(ref_number)
+    # query_result = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, item_number)).fetchone()
 
     query_result = cursor.execute('''
         SELECT TOP 1
@@ -1382,11 +1423,12 @@ def populate_ecr_order_panel(item_number):
             {}.model
         FROM {} LEFT JOIN item_responsibilities2 ON {}.item = item_responsibilities2.item WHERE
             {}.item = '{}'	
-        '''.format(table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used, item_number)).fetchone()
+        '''.format(table_used, table_used, table_used, table_used, table_used, table_used, table_used, table_used,
+                   table_used, table_used, table_used, table_used, item_number)).fetchone()
 
-    #replace NULLs in results with blank string
+    # replace NULLs in results with blank string
     if query_result != None:
-        query_result = ['' if x==None else x for x in query_result]
+        query_result = ['' if x == None else x for x in query_result]
 
     if query_result != None:
         item, sales_order, line_up, serial, customer, \
@@ -1409,7 +1451,7 @@ def populate_ecr_order_panel(item_number):
             real_structural_by = structural_cad_designer
 
         ctrl(General.app.main_frame, 'label:order_panel_item_number').SetLabel(str(item))
-        ctrl(General.app.main_frame, 'label:order_panel_sales_order').SetLabel(str(sales_order)+'-'+str(line_up))
+        ctrl(General.app.main_frame, 'label:order_panel_sales_order').SetLabel(str(sales_order) + '-' + str(line_up))
         ctrl(General.app.main_frame, 'label:order_panel_serial').SetLabel(str(serial))
         ctrl(General.app.main_frame, 'label:order_panel_customer').SetLabel(str(customer))
         ctrl(General.app.main_frame, 'label:order_panel_mechanical').SetLabel(str(real_mechanical_by))
@@ -1427,18 +1469,19 @@ def populate_ecr_order_panel(item_number):
         ctrl(General.app.main_frame, 'label:order_panel_model').SetLabel('')
 
 
-
 def populate_ecr_panel(id):
     if id != None and id != '[more]':
         cursor = Database.connection.cursor()
-        cursor.execute("SELECT id, reference_number, type, reason, document, who_claimed, who_assigned, request, resolution, attachment, status FROM ecrs WHERE id=\'{}\'".format(id))
+        cursor.execute(
+            "SELECT id, reference_number, type, reason, document, who_claimed, who_assigned, request, resolution, attachment, status FROM ecrs WHERE id=\'{}\'".format(
+                id))
         query_result = cursor.fetchone()
     else:
         query_result = None
 
-    #replace NULLs in results with blank string
+    # replace NULLs in results with blank string
     if query_result != None:
-        query_result = ['' if x==None else x for x in query_result]
+        query_result = ['' if x == None else x for x in query_result]
 
     if query_result != None:
         ctrl(General.app.main_frame, 'label:ecr_panel_id').SetLabel(str(query_result[0]))
@@ -1451,7 +1494,7 @@ def populate_ecr_panel(id):
         ctrl(General.app.main_frame, 'text:ecr_panel_description').SetValue(str(query_result[7]))
         ctrl(General.app.main_frame, 'text:ecr_panel_resolution').SetValue(str(query_result[8]))
 
-        #if attachments in ecr
+        # if attachments in ecr
         if query_result[9] != '':
             print query_result[9]
             ctrl(General.app.main_frame, 'button:open_attachment').Show()
@@ -1459,7 +1502,7 @@ def populate_ecr_panel(id):
         else:
             ctrl(General.app.main_frame, 'button:open_attachment').Hide()
 
-        #if already closed
+        # if already closed
         if query_result[10] == 'Closed':
             ctrl(General.app.main_frame, 'button:claim').Disable()
             ctrl(General.app.main_frame, 'button:assign').Disable()
@@ -1469,7 +1512,7 @@ def populate_ecr_panel(id):
             ctrl(General.app.main_frame, 'button:assign').Enable()
             ctrl(General.app.main_frame, 'button:close').Enable()
 
-        #if already claimed by this user, disable
+        # if already claimed by this user, disable
         if query_result[5] == General.app.current_user:
             ctrl(General.app.main_frame, 'button:claim').Disable()
 
@@ -1490,24 +1533,21 @@ def populate_ecr_panel(id):
 
 def radio_button_selected(event, type):
     if General.app.new_ecr_dialog:
-        #add document options to choice box based on ecr type selected
+        # add document options to choice box based on ecr type selected
         cursor = Database.connection.cursor()
         cursor.execute("SELECT document FROM ecr_document_choices WHERE type=\'{}\' OR type=\'*\'".format(type))
         ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
         ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
     General.app.ecr_type = type
-    #print 'good!'
-
-
+    # print 'good!'
 
 
 def refresh_closed_ecrs_list(event=None, limit=15):
     closed_ecr_list = ctrl(General.app.main_frame, 'list:closed_ecrs')
 
-    #clear out the list
+    # clear out the list
     closed_ecr_list.DeleteAllItems()
     set_list_headers(closed_ecr_list, get_cleaned_list_headers(closed_ecr_list))
-
 
     column_names = Database.get_table_column_names('ecrs', presentable=True)
 
@@ -1516,32 +1556,35 @@ def refresh_closed_ecrs_list(event=None, limit=15):
             if column_name == 'Reference Number':
                 closed_ecr_list.InsertColumn(index, 'ReferenceNo')
             elif column_name == 'Document':
-                #kinda ghetto but replace the field where document would be with sales order
+                # kinda ghetto but replace the field where document would be with sales order
                 closed_ecr_list.InsertColumn(index, 'Sales Order')
             else:
                 closed_ecr_list.InsertColumn(index, column_name)
 
-    #query the database
+    # query the database
     cursor = Database.connection.cursor()
 
-    user_department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    user_department = cursor.execute(
+        'SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE status = \'Closed\' AND Production_Plant = \'{}\' ORDER BY when_closed DESC".format(limit, Prod_Plant))
+    cursor.execute(
+        "SELECT TOP {} * FROM ecrs WHERE status = \'Closed\' AND Production_Plant = \'{}\' ORDER BY when_closed DESC".format(
+            limit, Prod_Plant))
     records = cursor.fetchall()
 
     for ecr_index, ecr in enumerate(records):
         closed_ecr_list.InsertStringItem(sys.maxint, '#')
 
-        #get order data from reference number
+        # get order data from reference number
         sales_order = None
         reference_number = ecr[2]
         if reference_number != None:
-            #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
+            # order_data = Database.get_order_data_from_ref(reference_number)
+            order_data = cursor.execute(
+                "SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
 
             if order_data != None:
-                sales_order = str(order_data[1]) +'-'+ str(order_data[2])
-
+                sales_order = str(order_data[1]) + '-' + str(order_data[2])
 
         for column_index, column_value in enumerate(ecr):
             try:
@@ -1563,7 +1606,6 @@ def refresh_closed_ecrs_list(event=None, limit=15):
                 if column_names[column_index] == 'When Assigned':
                     if column_value != None: column_value = General.format_date_nicely(column_value)
 
-
                 if column_names[column_index] == 'Document':
                     column_value = sales_order
 
@@ -1574,17 +1616,17 @@ def refresh_closed_ecrs_list(event=None, limit=15):
                 print column_value
                 print sys.exc_info()
 
-
-    #last row allows user to load more records
+    # last row allows user to load more records
     if len(records) == limit:
         closed_ecr_list.InsertStringItem(sys.maxint, ' ')
         closed_ecr_list.SetStringItem(limit, 0, "[more]")
-        #closed_ecr_list.SetStringItem(i+1, 1, str(limit*2))
+        # closed_ecr_list.SetStringItem(i+1, 1, str(limit*2))
 
     if user_department == 'Design Engineering':
         columns_to_hide = ['item_number', 'status', 'type']
     else:
-        columns_to_hide = ['item_number', 'status', 'reason', 'department', 'type', 'when_modified',  'who_errored', 'who_claimed', 'when_claimed', 'who_assigned', 'when_assigned', 'who_modified']
+        columns_to_hide = ['item_number', 'status', 'reason', 'department', 'type', 'when_modified', 'who_errored',
+                           'who_claimed', 'when_claimed', 'who_assigned', 'when_assigned', 'who_modified']
 
     for column_index, column_name in enumerate(column_names):
         if column_name.lower().replace(' ', '_') in columns_to_hide:
@@ -1596,7 +1638,6 @@ def refresh_closed_ecrs_list(event=None, limit=15):
                 closed_ecr_list.SetColumnWidth(column_index, 400)
             else:
                 closed_ecr_list.SetColumnWidth(column_index, wx.LIST_AUTOSIZE_USEHEADER)
-
 
     '''
     #create columns for the list
@@ -1671,16 +1712,16 @@ def refresh_closed_ecrs_list(event=None, limit=15):
     closed_ecr_list.SetColumnWidth(6, wx.LIST_AUTOSIZE_USEHEADER)
     '''
 
-    #change label saying when last refreshed
+    # change label saying when last refreshed
     now = time.localtime()
-    ctrl(General.app.main_frame, 'label:closed_ecrs_last_updated').SetLabel('List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
-
+    ctrl(General.app.main_frame, 'label:closed_ecrs_last_updated').SetLabel(
+        'List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
 
 
 def refresh_my_ecrs_list(event=None, limit=15):
     my_ecr_list = ctrl(General.app.main_frame, 'list:my_ecrs')
 
-    #clear out the list
+    # clear out the list
     my_ecr_list.DeleteAllItems()
     set_list_headers(my_ecr_list, get_cleaned_list_headers(my_ecr_list))
 
@@ -1691,17 +1732,20 @@ def refresh_my_ecrs_list(event=None, limit=15):
             if column_name == 'Reference Number':
                 my_ecr_list.InsertColumn(index, 'ReferenceNo')
             elif column_name == 'Document':
-                #kinda ghetto but replace the field where document would be with sales order
+                # kinda ghetto but replace the field where document would be with sales order
                 my_ecr_list.InsertColumn(index, 'Sales Order')
             else:
                 my_ecr_list.InsertColumn(index, column_name)
 
-    #query the database
+    # query the database
     cursor = Database.connection.cursor()
 
-    user_department = cursor.execute("SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
+    user_department = cursor.execute(
+        "SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE who_requested = \'{}\' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(limit, General.app.current_user, Prod_Plant))
+    cursor.execute(
+        "SELECT TOP {} * FROM ecrs WHERE who_requested = \'{}\' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(
+            limit, General.app.current_user, Prod_Plant))
     records = cursor.fetchall()
 
     for ecr_index, ecr in enumerate(records):
@@ -1710,16 +1754,16 @@ def refresh_my_ecrs_list(event=None, limit=15):
         if str(ecr[1]) == 'Open':
             my_ecr_list.SetItemBackgroundColour(ecr_index, '#FFF0B7')
 
-        #get order data from reference number
+        # get order data from reference number
         sales_order = None
         reference_number = ecr[2]
         if reference_number != None:
-            #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
+            # order_data = Database.get_order_data_from_ref(reference_number)
+            order_data = cursor.execute(
+                "SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
 
             if order_data != None:
-                sales_order = str(order_data[1]) +'-'+ str(order_data[2])
-
+                sales_order = str(order_data[1]) + '-' + str(order_data[2])
 
         for column_index, column_value in enumerate(ecr):
             try:
@@ -1751,17 +1795,18 @@ def refresh_my_ecrs_list(event=None, limit=15):
                 print '---', ecr
                 print sys.exc_info()
 
-
-    #last row allows user to load more records
+    # last row allows user to load more records
     if len(records) == limit:
         my_ecr_list.InsertStringItem(sys.maxint, ' ')
         my_ecr_list.SetStringItem(limit, 0, "[more]")
-        #my_ecr_list.SetStringItem(i+1, 1, str(limit*2))
+        # my_ecr_list.SetStringItem(i+1, 1, str(limit*2))
 
     if user_department == 'Design Engineering':
         columns_to_hide = ['item_number', 'type']
     else:
-        columns_to_hide = ['item_number', 'reason', 'department', 'who_requested', 'type', 'attachment', 'when_modified', 'who_errored', 'who_claimed', 'when_claimed', 'who_assigned', 'when_assigned', 'who_modified']
+        columns_to_hide = ['item_number', 'reason', 'department', 'who_requested', 'type', 'attachment',
+                           'when_modified', 'who_errored', 'who_claimed', 'when_claimed', 'who_assigned',
+                           'when_assigned', 'who_modified']
 
     '''
     #set the Id column header to a name as long as an ECR number because although the code is supposed
@@ -1790,15 +1835,16 @@ def refresh_my_ecrs_list(event=None, limit=15):
     my_ecr_list.SetColumn(0, header)
     '''
 
-    #change label saying when last refreshed
+    # change label saying when last refreshed
     now = time.localtime()
-    ctrl(General.app.main_frame, 'label:my_ecrs_last_updated').SetLabel('List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
+    ctrl(General.app.main_frame, 'label:my_ecrs_last_updated').SetLabel(
+        'List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
 
 
 def refresh_my_assigned_ecrs_list(event=None, limit=15):
     my_assigned_ecr_list = ctrl(General.app.main_frame, 'list:my_assigned_ecrs')
 
-    #clear out the list
+    # clear out the list
     my_assigned_ecr_list.DeleteAllItems()
     set_list_headers(my_assigned_ecr_list, get_cleaned_list_headers(my_assigned_ecr_list))
 
@@ -1809,17 +1855,20 @@ def refresh_my_assigned_ecrs_list(event=None, limit=15):
             if column_name == 'Reference Number':
                 my_assigned_ecr_list.InsertColumn(index, 'ReferenceNo')
             elif column_name == 'Document':
-                #kinda ghetto but replace the field where document would be with sales order
+                # kinda ghetto but replace the field where document would be with sales order
                 my_assigned_ecr_list.InsertColumn(index, 'Sales Order')
             else:
                 my_assigned_ecr_list.InsertColumn(index, column_name)
 
-    #query the database
+    # query the database
     cursor = Database.connection.cursor()
 
-    user_department = cursor.execute("SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
+    user_department = cursor.execute(
+        "SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE who_assigned = \'{}\' AND status='Open' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(limit, General.app.current_user, Prod_Plant))
+    cursor.execute(
+        "SELECT TOP {} * FROM ecrs WHERE who_assigned = \'{}\' AND status='Open' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(
+            limit, General.app.current_user, Prod_Plant))
     records = cursor.fetchall()
 
     for ecr_index, ecr in enumerate(records):
@@ -1828,16 +1877,16 @@ def refresh_my_assigned_ecrs_list(event=None, limit=15):
         if str(ecr[1]) == 'Open':
             my_assigned_ecr_list.SetItemBackgroundColour(ecr_index, '#FFF0B7')
 
-        #get order data from reference number
+        # get order data from reference number
         sales_order = None
         reference_number = ecr[2]
         if reference_number != None:
-            #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
+            # order_data = Database.get_order_data_from_ref(reference_number)
+            order_data = cursor.execute(
+                "SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
 
             if order_data != None:
-                sales_order = str(order_data[1]) +'-'+ str(order_data[2])
-
+                sales_order = str(order_data[1]) + '-' + str(order_data[2])
 
         for column_index, column_value in enumerate(ecr):
             try:
@@ -1869,17 +1918,18 @@ def refresh_my_assigned_ecrs_list(event=None, limit=15):
                 print '---', ecr
                 print sys.exc_info()
 
-
-    #last row allows user to load more records
+    # last row allows user to load more records
     if len(records) == limit:
         my_assigned_ecr_list.InsertStringItem(sys.maxint, ' ')
         my_assigned_ecr_list.SetStringItem(limit, 0, "[more]")
-        #my_assigned_ecr_list.SetStringItem(i+1, 1, str(limit*2))
+        # my_assigned_ecr_list.SetStringItem(i+1, 1, str(limit*2))
 
     if user_department == 'Design Engineering':
         columns_to_hide = ['item_number', 'type']
     else:
-        columns_to_hide = ['item_number', 'reason', 'department', 'who_requested', 'type', 'attachment', 'when_modified', 'who_errored', 'who_claimed', 'when_claimed', 'who_assigned', 'when_assigned', 'who_modified']
+        columns_to_hide = ['item_number', 'reason', 'department', 'who_requested', 'type', 'attachment',
+                           'when_modified', 'who_errored', 'who_claimed', 'when_claimed', 'who_assigned',
+                           'when_assigned', 'who_modified']
 
     for column_index, column_name in enumerate(column_names):
         if column_name.lower().replace(' ', '_') in columns_to_hide:
@@ -1892,19 +1942,16 @@ def refresh_my_assigned_ecrs_list(event=None, limit=15):
             else:
                 my_assigned_ecr_list.SetColumnWidth(column_index, wx.LIST_AUTOSIZE_USEHEADER)
 
-    #change label saying when last refreshed
+    # change label saying when last refreshed
     now = time.localtime()
-    ctrl(General.app.main_frame, 'label:my_assigned_ecrs_last_updated').SetLabel('List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
-
-
-
-
+    ctrl(General.app.main_frame, 'label:my_assigned_ecrs_last_updated').SetLabel(
+        'List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
 
 
 def refresh_open_ecrs_list(event=None, limit=100):
     open_ecr_list = ctrl(General.app.main_frame, 'list:open_ecrs')
 
-    #clear out the list
+    # clear out the list
     open_ecr_list.DeleteAllItems()
     set_list_headers(open_ecr_list, get_cleaned_list_headers(open_ecr_list))
 
@@ -1917,10 +1964,11 @@ def refresh_open_ecrs_list(event=None, limit=100):
         for index, column_name in enumerate(column_names):
             open_ecr_list.InsertColumn(index, column_name)
 
-    #query the database
+    # query the database
     cursor = Database.connection.cursor()
 
-    user_department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    user_department = cursor.execute(
+        'SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
 
     cursor.execute('''
         SELECT
@@ -1952,12 +2000,12 @@ def refresh_open_ecrs_list(event=None, limit=100):
         WHERE 
             ecrs.status = 'Open' AND Production_Plant = \'{}\'
         ORDER BY 
-            {}.sales_order ASC, {}.line_up ASC'''.format(table_used, table_used, table_used, table_used, Prod_Plant, table_used, table_used))
+            {}.sales_order ASC, {}.line_up ASC'''.format(table_used, table_used, table_used, table_used, Prod_Plant,
+                                                         table_used, table_used))
 
     records = cursor.fetchall()
 
-
-    #purge out ECRs that need approval and don't yet have it...
+    # purge out ECRs that need approval and don't yet have it...
     new_records = []
     for ecr in records:
         reason = ecr[11]
@@ -1972,7 +2020,6 @@ def refresh_open_ecrs_list(event=None, limit=100):
 
     records = new_records
 
-
     ecrs_open = 0
     ecrs_late = 0
     ecrs_due_today = 0
@@ -1982,13 +2029,14 @@ def refresh_open_ecrs_list(event=None, limit=100):
 
         ecrs_open += 1
 
-        when_needed_dt = dt.datetime.strptime(str(ecr[column_names.index('When Needed')]), "%Y-%m-%d %H:%M:%S") #to python time object
-        #color ECRs red if late
+        when_needed_dt = dt.datetime.strptime(str(ecr[column_names.index('When Needed')]),
+                                              "%Y-%m-%d %H:%M:%S")  # to python time object
+        # color ECRs red if late
         if when_needed_dt < dt.datetime.today():
             open_ecr_list.SetItemBackgroundColour(ecr_index, '#FF9999')
             ecrs_late += 1
 
-        #color them orange if due today
+        # color them orange if due today
         if (when_needed_dt.month == dt.datetime.today().month) and (when_needed_dt.day == dt.datetime.today().day):
             open_ecr_list.SetItemBackgroundColour(ecr_index, '#FFF0B7')
             ecrs_due_today += 1
@@ -2018,12 +2066,11 @@ def refresh_open_ecrs_list(event=None, limit=100):
                 print 'yoyoy: ', column_value
                 print sys.exc_info()
 
-
-    #last row allows user to load more records
+    # last row allows user to load more records
     if len(records) == limit:
         open_ecr_list.InsertStringItem(sys.maxint, ' ')
         open_ecr_list.SetStringItem(limit, 0, "[more]")
-        #open_ecr_list.SetStringItem(i+1, 1, str(limit*2))
+        # open_ecr_list.SetStringItem(i+1, 1, str(limit*2))
 
     '''
     if user_department == 'Design Engineering':
@@ -2042,20 +2089,20 @@ def refresh_open_ecrs_list(event=None, limit=100):
         else:
             open_ecr_list.SetColumnWidth(column_index, wx.LIST_AUTOSIZE_USEHEADER)
 
-    #change label saying when last refreshed
+    # change label saying when last refreshed
     now = time.localtime()
-    ctrl(General.app.main_frame, 'label:open_ecrs_last_updated').SetLabel('List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
+    ctrl(General.app.main_frame, 'label:open_ecrs_last_updated').SetLabel(
+        'List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
 
-    #say how many we have open, late and due
-    ctrl(General.app.main_frame, 'label:ecr_stats').SetLabel('{} open, {} late, {} due today'.format(ecrs_open, ecrs_late, ecrs_due_today))
-
-
+    # say how many we have open, late and due
+    ctrl(General.app.main_frame, 'label:ecr_stats').SetLabel(
+        '{} open, {} late, {} due today'.format(ecrs_open, ecrs_late, ecrs_due_today))
 
 
 def refresh_committee_ecrs_list(event=None, limit=100):
     committee_ecr_list = ctrl(General.app.main_frame, 'list:committee_ecrs')
 
-    #clear out the list
+    # clear out the list
     committee_ecr_list.DeleteAllItems()
     set_list_headers(committee_ecr_list, get_cleaned_list_headers(committee_ecr_list))
 
@@ -2066,17 +2113,19 @@ def refresh_committee_ecrs_list(event=None, limit=100):
             if column_name == 'Reference Number':
                 committee_ecr_list.InsertColumn(index, 'ReferenceNo')
             elif column_name == 'Document':
-                #kinda ghetto but replace the field where document would be with sales order
+                # kinda ghetto but replace the field where document would be with sales order
                 committee_ecr_list.InsertColumn(index, 'Sales Order')
             else:
                 committee_ecr_list.InsertColumn(index, column_name)
 
-    #query the database
+    # query the database
     cursor = Database.connection.cursor()
 
-    #user_department = cursor.execute("SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
+    # user_department = cursor.execute("SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE status='Open' AND approval_stage='New Request, needs reviewing' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(limit, Prod_Plant, General.app.current_user))
+    cursor.execute(
+        "SELECT TOP {} * FROM ecrs WHERE status='Open' AND approval_stage='New Request, needs reviewing' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(
+            limit, Prod_Plant, General.app.current_user))
     records = cursor.fetchall()
 
     new_records = []
@@ -2091,19 +2140,19 @@ def refresh_committee_ecrs_list(event=None, limit=100):
 
         committee_ecr_list.InsertStringItem(sys.maxint, '#')
 
-        #if str(ecr[1]) == 'Open':
+        # if str(ecr[1]) == 'Open':
         #	committee_ecr_list.SetItemBackgroundColour(ecr_index, '#FFF0B7')
 
-        #get order data from reference number
+        # get order data from reference number
         sales_order = None
         reference_number = ecr[2]
         if reference_number != None:
-            #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format( table_used, ecr[3])).fetchone()
+            # order_data = Database.get_order_data_from_ref(reference_number)
+            order_data = cursor.execute(
+                "SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
 
             if order_data != None:
-                sales_order = str(order_data[1]) +'-'+ str(order_data[2])
-
+                sales_order = str(order_data[1]) + '-' + str(order_data[2])
 
         for column_index, column_value in enumerate(ecr):
             try:
@@ -2135,12 +2184,11 @@ def refresh_committee_ecrs_list(event=None, limit=100):
                 print '---', ecr
                 print sys.exc_info()
 
-
-    #last row allows user to load more records
+    # last row allows user to load more records
     if len(records) == limit:
         committee_ecr_list.InsertStringItem(sys.maxint, ' ')
         committee_ecr_list.SetStringItem(limit, 0, "[more]")
-        #committee_ecr_list.SetStringItem(i+1, 1, str(limit*2))
+        # committee_ecr_list.SetStringItem(i+1, 1, str(limit*2))
 
     '''
     if user_department == 'Design Engineering':
@@ -2168,30 +2216,27 @@ def refresh_committee_ecrs_list(event=None, limit=100):
     committee_ecr_list.SetColumn(0, header)
     '''
 
-    #change label saying when last refreshed
+    # change label saying when last refreshed
     now = time.localtime()
-    ctrl(General.app.main_frame, 'label:committee_ecrs_last_updated').SetLabel('List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
-
-
-
-
-
+    ctrl(General.app.main_frame, 'label:committee_ecrs_last_updated').SetLabel(
+        'List last updated {}'.format(time.strftime("%I:%M %p", now).strip('0')))
 
 
 def reset_search_fields():
     for i in range(11):
-        ctrl(General.app.search_ecrs_dialog, 'choice:search_condition'+str(i)).SetStringSelection(' ')
-        ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).SetValue('')
+        ctrl(General.app.search_ecrs_dialog, 'choice:search_condition' + str(i)).SetStringSelection(' ')
+        ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).SetValue('')
 
-    #set 'from' dates to a low value...
+    # set 'from' dates to a low value...
     ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_from').SetValue(wx.DateTimeFromDMY(1, 0, 1900))
     ctrl(General.app.search_ecrs_dialog, 'date_picker:needed_from').SetValue(wx.DateTimeFromDMY(1, 0, 1900))
     ctrl(General.app.search_ecrs_dialog, 'date_picker:closed_from').SetValue(wx.DateTimeFromDMY(1, 0, 1900))
     ctrl(General.app.search_ecrs_dialog, 'date_picker:modified_from').SetValue(wx.DateTimeFromDMY(1, 0, 1900))
 
-    #set 'to' dates to a year ahead
-    date_list = ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_to').GetValue().Format("%d-%m-%Y").split('-')
-    date_wx_format = wx.DateTimeFromDMY(int(date_list[0]), int(date_list[1])-1, int(date_list[2])+1)
+    # set 'to' dates to a year ahead
+    date_list = ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_to').GetValue().Format("%d-%m-%Y").split(
+        '-')
+    date_wx_format = wx.DateTimeFromDMY(int(date_list[0]), int(date_list[1]) - 1, int(date_list[2]) + 1)
     ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_to').SetValue(date_wx_format)
     ctrl(General.app.search_ecrs_dialog, 'date_picker:needed_to').SetValue(date_wx_format)
     ctrl(General.app.search_ecrs_dialog, 'date_picker:closed_to').SetValue(date_wx_format)
@@ -2202,24 +2247,22 @@ def reset_search_fields():
     ctrl(General.app.search_ecrs_dialog, 'choice:limit').SetStringSelection('25 records')
 
 
-
 def search_condition_selected(event, index):
-    #clear out the search field if no condition selected
-    if ctrl(General.app.search_ecrs_dialog, 'choice:search_condition'+str(index)).GetSelection() == 0:
-        ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(index)).SetValue('')
-
+    # clear out the search field if no condition selected
+    if ctrl(General.app.search_ecrs_dialog, 'choice:search_condition' + str(index)).GetSelection() == 0:
+        ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(index)).SetValue('')
 
 
 def search_ecrs(event):
     event.GetEventObject().SetLabel('Searching...')
     results_list = ctrl(General.app.main_frame, 'list:results')
 
-    #clear out the list
+    # clear out the list
     results_list.DeleteAllItems()
 
     column_names = Database.get_table_column_names('ecrs', presentable=True)
 
-    #create columns for the list
+    # create columns for the list
     if results_list.GetColumn(0) == None:
         for index, column_name in enumerate(column_names):
             results_list.InsertColumn(index, column_name)
@@ -2245,38 +2288,48 @@ def search_ecrs(event):
         results_list.InsertColumn(17, 'Who Assigned To')
         '''
 
-    #generate SQL query from search fields
+    # generate SQL query from search fields
     sql = "SELECT "
 
-    #limit the records pulled if desired
+    # limit the records pulled if desired
     if ctrl(General.app.search_ecrs_dialog, 'choice:limit').GetStringSelection() != '(no limit)':
-        sql += "TOP {} ".format(int(ctrl(General.app.search_ecrs_dialog, 'choice:limit').GetStringSelection().split(' ')[0]))
+        sql += "TOP {} ".format(
+            int(ctrl(General.app.search_ecrs_dialog, 'choice:limit').GetStringSelection().split(' ')[0]))
     sql += "* FROM ecrs WHERE "
 
-    table_columns = ['id', 'status', 'reference_number', 'document', 'reason', 'department', 'who_requested', 'type', 'request', 'resolution', 'who_errored', 'who_claimed', 'who_assigned', 'when_requested', 'when_needed', 'when_closed', 'when_modified']
+    table_columns = ['id', 'status', 'reference_number', 'document', 'reason', 'department', 'who_requested', 'type',
+                     'request', 'resolution', 'who_errored', 'who_claimed', 'who_assigned', 'when_requested',
+                     'when_needed', 'when_closed', 'when_modified']
 
     ##a better way to do it would be like...
-    #table_columns = Database.get_table_column_names('ecrs')
-    #table_columns.remove('attachment')
+    # table_columns = Database.get_table_column_names('ecrs')
+    # table_columns.remove('attachment')
 
     for i in range(13):
-        condition = ctrl(General.app.search_ecrs_dialog, 'choice:search_condition'+str(i)).GetStringSelection()
+        condition = ctrl(General.app.search_ecrs_dialog, 'choice:search_condition' + str(i)).GetStringSelection()
         if condition == '=':
-            sql += table_columns[i] +'=\'{}\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).GetValue())
+            sql += table_columns[i] + '=\'{}\' AND '.format(
+                ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).GetValue())
         if condition == '>':
-            sql += table_columns[i] +'>\'{}\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).GetValue())
+            sql += table_columns[i] + '>\'{}\' AND '.format(
+                ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).GetValue())
         if condition == '<':
-            sql += table_columns[i] +'<\'{}\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).GetValue())
+            sql += table_columns[i] + '<\'{}\' AND '.format(
+                ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).GetValue())
         if condition == '>=':
-            sql += table_columns[i] +'>=\'{}\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).GetValue())
+            sql += table_columns[i] + '>=\'{}\' AND '.format(
+                ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).GetValue())
         if condition == '<=':
-            sql += table_columns[i] +'<=\'{}\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).GetValue())
+            sql += table_columns[i] + '<=\'{}\' AND '.format(
+                ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).GetValue())
         if condition == 'not':
-            sql += table_columns[i] +'<>\'{}\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).GetValue())
+            sql += table_columns[i] + '<>\'{}\' AND '.format(
+                ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).GetValue())
         if condition == 'contains':
-            sql += table_columns[i] +' LIKE \'%{}%\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(i)).GetValue())
+            sql += table_columns[i] + ' LIKE \'%{}%\' AND '.format(
+                ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(i)).GetValue())
 
-    #set minimum date?
+    # set minimum date?
     date = ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_from').GetValue().Format("%Y-%m-%d")
     if date != '1900-01-01':
         sql += 'when_requested>\'{} 00:00:00\' AND '.format(date)
@@ -2290,26 +2343,34 @@ def search_ecrs(event):
     if date != '1900-01-01':
         sql += 'when_modified>\'{} 00:00:00\' AND '.format(date)
 
-    #set maximum date
+    # set maximum date
     now = dt.datetime.now()
-    if ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_to').GetValue().Format("%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year+1):
-        sql += 'when_requested<\'{} 23:59:59\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_to').GetValue().Format("%Y-%m-%d"))
-    if ctrl(General.app.search_ecrs_dialog, 'date_picker:needed_to').GetValue().Format("%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year+1):
-        sql += 'when_needed<\'{} 23:59:59\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'date_picker:needed_to').GetValue().Format("%Y-%m-%d"))
-    if ctrl(General.app.search_ecrs_dialog, 'date_picker:closed_to').GetValue().Format("%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year+1):
-        sql += 'when_closed<\'{} 23:59:59\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'date_picker:closed_to').GetValue().Format("%Y-%m-%d"))
-    if ctrl(General.app.search_ecrs_dialog, 'date_picker:modified_to').GetValue().Format("%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year+1):
-        sql += 'when_modified<\'{} 23:59:59\' AND '.format(ctrl(General.app.search_ecrs_dialog, 'date_picker:modified_to').GetValue().Format("%Y-%m-%d"))
+    if ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_to').GetValue().Format(
+            "%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year + 1):
+        sql += 'when_requested<\'{} 23:59:59\' AND '.format(
+            ctrl(General.app.search_ecrs_dialog, 'date_picker:requested_to').GetValue().Format("%Y-%m-%d"))
+    if ctrl(General.app.search_ecrs_dialog, 'date_picker:needed_to').GetValue().Format(
+            "%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year + 1):
+        sql += 'when_needed<\'{} 23:59:59\' AND '.format(
+            ctrl(General.app.search_ecrs_dialog, 'date_picker:needed_to').GetValue().Format("%Y-%m-%d"))
+    if ctrl(General.app.search_ecrs_dialog, 'date_picker:closed_to').GetValue().Format(
+            "%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year + 1):
+        sql += 'when_closed<\'{} 23:59:59\' AND '.format(
+            ctrl(General.app.search_ecrs_dialog, 'date_picker:closed_to').GetValue().Format("%Y-%m-%d"))
+    if ctrl(General.app.search_ecrs_dialog, 'date_picker:modified_to').GetValue().Format(
+            "%d-%m-%Y") != "%02d-%02d-%04d" % (now.day, now.month, now.year + 1):
+        sql += 'when_modified<\'{} 23:59:59\' AND '.format(
+            ctrl(General.app.search_ecrs_dialog, 'date_picker:modified_to').GetValue().Format("%Y-%m-%d"))
 
-    #if there is a trailing "AND " on the string then get rid of it
+    # if there is a trailing "AND " on the string then get rid of it
     if sql[-4:] == "AND ":
         sql = sql[:-4]
 
-    #if there is a trailing "WHERE" on the string then get rid of it
+    # if there is a trailing "WHERE" on the string then get rid of it
     if sql[-6:] == "WHERE ":
         sql = sql[:-6]
 
-    #specify sort order
+    # specify sort order
     value = ctrl(General.app.search_ecrs_dialog, 'choice:sort_by').GetSelection()
     column = Database.get_table_column_names('ecrs')[value]
     sql += "ORDER BY {} ".format(column)
@@ -2320,10 +2381,10 @@ def search_ecrs(event):
         sql += 'ASC '
 
     ##limit the records pulled if desired
-    #if ctrl(General.app.search_ecrs_dialog, 'choice:limit').GetStringSelection() != '(no limit)':
+    # if ctrl(General.app.search_ecrs_dialog, 'choice:limit').GetStringSelection() != '(no limit)':
     #	sql += "LIMIT {}".format(int(ctrl(General.app.search_ecrs_dialog, 'choice:limit').GetStringSelection().split(' ')[0]))
 
-    #query the database
+    # query the database
     cursor = Database.connection.cursor()
     cursor.execute(sql)
     records = cursor.fetchall()
@@ -2346,7 +2407,7 @@ def search_ecrs(event):
             if column_value != None:
                 results_list.SetStringItem(ecr_index, column_index, str(column_value).replace('\n', ' \\ '))
 
-    #print documents_seen_above
+    # print documents_seen_above
 
     for column_index in range(len(column_names)):
         results_list.SetColumnWidth(column_index, wx.LIST_AUTOSIZE_USEHEADER)
@@ -2407,22 +2468,20 @@ def search_ecrs(event):
 
     event.GetEventObject().SetLabel('Begin Search')
     notebook = ctrl(General.app.main_frame, 'notebook:ecrs')
-    notebook.SetSelection(notebook.GetPageCount()-1)
+    notebook.SetSelection(notebook.GetPageCount() - 1)
 
     General.app.search_ecrs_dialog.Hide()
 
 
-
 def search_value_entered(event, index):
-    #if condition not specified when they type a value, force it to '='
-    if ctrl(General.app.search_ecrs_dialog, 'choice:search_condition'+str(index)).GetSelection() == 0:
-        if ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(index)).GetValue() != '':
-            ctrl(General.app.search_ecrs_dialog, 'choice:search_condition'+str(index)).SetSelection(1)
+    # if condition not specified when they type a value, force it to '='
+    if ctrl(General.app.search_ecrs_dialog, 'choice:search_condition' + str(index)).GetSelection() == 0:
+        if ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(index)).GetValue() != '':
+            ctrl(General.app.search_ecrs_dialog, 'choice:search_condition' + str(index)).SetSelection(1)
 
-    #although, if what they typed ends up being blank, clear the condition
-    if ctrl(General.app.search_ecrs_dialog, 'combo:search_value'+str(index)).GetValue() == '':
-        ctrl(General.app.search_ecrs_dialog, 'choice:search_condition'+str(index)).SetSelection(0)
-
+    # although, if what they typed ends up being blank, clear the condition
+    if ctrl(General.app.search_ecrs_dialog, 'combo:search_value' + str(index)).GetValue() == '':
+        ctrl(General.app.search_ecrs_dialog, 'choice:search_condition' + str(index)).SetSelection(0)
 
 
 def send_ecr_assigned_email(ecr, order, reciever, sender):
@@ -2457,7 +2516,7 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
 
     msg['Date'] = formatdate(localtime=True)
 
-    #size="3"
+    # size="3"
     body_html = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>
         <font face=\"arial\">
         You have been assigned this ECR<br><br>
@@ -2482,7 +2541,7 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
     body.attach(MIMEText(body_html, 'html'))
     msg.attach(body)
 
-    #print email_string
+    # print email_string
 
     try:
         server.sendmail(sender, reciever, msg.as_string())
@@ -2490,8 +2549,6 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
         wx.MessageBox('Unable to send email. Error: {}'.format(e), 'An error occurred!', wx.OK | wx.ICON_ERROR)
 
     server.close()
-
-
 
 
 def send_similar_items_email(order_data, ecr_data, similar_items_data, recievers, sender):
@@ -2502,23 +2559,23 @@ def send_similar_items_email(order_data, ecr_data, similar_items_data, recievers
         reciever_email_string += '; {}'.format(email)
     reciever_email_string = reciever_email_string[2:]
 
-    #print "reciever_email_string:", reciever_email_string
+    # print "reciever_email_string:", reciever_email_string
 
     msg = MIMEMultipart()
     msg["From"] = sender
     msg["To"] = reciever_email_string
-    #msg["Subject"] = 'Possibly Pertinent Items for Closed ECR'
+    # msg["Subject"] = 'Possibly Pertinent Items for Closed ECR'
     msg["Subject"] = 'Closed ECR might apply to other items'
 
-        #order_directory = OrderFileOpeners.get_order_directory(order[1])
+    # order_directory = OrderFileOpeners.get_order_directory(order[1])
 
-        #if order_directory:
-        #	shortcuts = '<a href=\"file:///{}\">Open Order Folder</a>'.format(order_directory)
+    # if order_directory:
+    #	shortcuts = '<a href=\"file:///{}\">Open Order Folder</a>'.format(order_directory)
 
 
     msg['Date'] = formatdate(localtime=True)
 
-    #size="3" #<font size="10" face="Calibri">
+    # size="3" #<font size="10" face="Calibri">
     body_html = '''<style type="text/css">
         td{font-family:Calibri; color:black; font-size:11pt;}
         BODY{font-family:Calibri; color:black; font-size:11pt;}
@@ -2585,26 +2642,25 @@ def send_similar_items_email(order_data, ecr_data, similar_items_data, recievers
         if engineer == None:
             engineer = project_lead
 
-        body_html += '''<tr><td>{}&nbsp;</td><td>{}&nbsp;</td><td>{}&nbsp;</td></tr>\n'''.format(sales_order, item, engineer)
+        body_html += '''<tr><td>{}&nbsp;</td><td>{}&nbsp;</td><td>{}&nbsp;</td></tr>\n'''.format(sales_order, item,
+                                                                                                 engineer)
 
     body_html += '''</table>\n'''
-
 
     body = MIMEMultipart('alternative')
     body.attach(MIMEText(body_html, 'html'))
     msg.attach(body)
 
-    #print email_string
+    # print email_string
 
     try:
         server.sendmail(sender, recievers, msg.as_string())
-        #1/0.
-        #server.sendmail(sender, ('Travis.Stuart@Heatcraftrpd.com'), msg.as_string())
+        # 1/0.
+        # server.sendmail(sender, ('Travis.Stuart@Heatcraftrpd.com'), msg.as_string())
     except Exception, e:
         wx.MessageBox('Unable to send email. Error: {}'.format(e), 'An error occurred!', wx.OK | wx.ICON_ERROR)
 
     server.close()
-
 
 
 def send_ecr_closed_email(ecr, order, reciever, sender):
@@ -2639,7 +2695,7 @@ def send_ecr_closed_email(ecr, order, reciever, sender):
 
     msg['Date'] = formatdate(localtime=True)
 
-    #size="3"
+    # size="3"
     body_html = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>
         <font face=\"arial\">
         {}
@@ -2664,7 +2720,7 @@ def send_ecr_closed_email(ecr, order, reciever, sender):
     body.attach(MIMEText(body_html, 'html'))
     msg.attach(body)
 
-    #print email_string
+    # print email_string
 
     try:
         server.sendmail(sender, reciever, msg.as_string())
@@ -2672,8 +2728,6 @@ def send_ecr_closed_email(ecr, order, reciever, sender):
         wx.MessageBox('Unable to send email. Error: {}'.format(e), 'An error occurred!', wx.OK | wx.ICON_ERROR)
 
     server.close()
-
-
 
 
 def send_ecr_soe_email(ecr, order, reciever, sender):
@@ -2708,7 +2762,7 @@ def send_ecr_soe_email(ecr, order, reciever, sender):
 
     msg['Date'] = formatdate(localtime=True)
 
-    #size="3"
+    # size="3"
     body_html = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>
         <font face=\"arial\">
         You have been marked as the source of error for this ECR<br><br>
@@ -2734,7 +2788,7 @@ def send_ecr_soe_email(ecr, order, reciever, sender):
     body.attach(MIMEText(body_html, 'html'))
     msg.attach(body)
 
-    #print email_string
+    # print email_string
 
     try:
         server.sendmail(sender, reciever, msg.as_string())
@@ -2744,16 +2798,15 @@ def send_ecr_soe_email(ecr, order, reciever, sender):
     server.close()
 
 
-
-
-
 def update_useful_info_panel(query_result):
     if validate_reference_entry() == True:
-        #if the entry number is in the DB, write its data to the 'usefull information' screen
+        # if the entry number is in the DB, write its data to the 'usefull information' screen
         if query_result != None:
             material = query_result[21]
             if material in ('CDA', 'CA', 'DSS'):
-                wx.MessageBox('This product should be supported with full 3D CAD models. As such, the BOM and other engineering documentation should be accurate. Please ensure the product is being built per the drawings and consult with your lead-man or supervisor before proceeding.', 'Warning', wx.OK | wx.ICON_WARNING)
+                wx.MessageBox(
+                    'This product should be supported with full 3D CAD models. As such, the BOM and other engineering documentation should be accurate. Please ensure the product is being built per the drawings and consult with your lead-man or supervisor before proceeding.',
+                    'Warning', wx.OK | wx.ICON_WARNING)
 
             ctrl(General.app.new_ecr_dialog, 'label:item_number').SetLabel(str(query_result[0]))
             ctrl(General.app.new_ecr_dialog, 'label:sales_order').SetLabel(str(query_result[1]))
@@ -2769,34 +2822,47 @@ def update_useful_info_panel(query_result):
             ctrl(General.app.new_ecr_dialog, 'label:state').SetLabel(str(query_result[9]))
             ctrl(General.app.new_ecr_dialog, 'label:country').SetLabel(str(query_result[10]))
 
-            #ctrl(General.app.new_ecr_dialog, 'label:mechanical').SetLabel(str(query_result[13]))
-            #ctrl(General.app.new_ecr_dialog, 'label:electrical').SetLabel(str(query_result[14]))
-            #ctrl(General.app.new_ecr_dialog, 'label:structural').SetLabel(str(query_result[15]))
-            #ctrl(General.app.new_ecr_dialog, 'label:program').SetLabel(str(query_result[16]))
+            # ctrl(General.app.new_ecr_dialog, 'label:mechanical').SetLabel(str(query_result[13]))
+            # ctrl(General.app.new_ecr_dialog, 'label:electrical').SetLabel(str(query_result[14]))
+            # ctrl(General.app.new_ecr_dialog, 'label:structural').SetLabel(str(query_result[15]))
+            # ctrl(General.app.new_ecr_dialog, 'label:program').SetLabel(str(query_result[16]))
 
             if query_result[17] == True:
                 ctrl(General.app.new_ecr_dialog, 'label:order_status').SetLabel('Canceled')
             else:
                 ctrl(General.app.new_ecr_dialog, 'label:order_status').SetLabel('Valid')
-            ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel(General.format_date_nicely(str(query_result[18]))[:8])
-            ctrl(General.app.new_ecr_dialog, 'label:date_produced').SetLabel(General.format_date_nicely(str(query_result[19]))[:8])
-            ctrl(General.app.new_ecr_dialog, 'label:date_shipped').SetLabel(General.format_date_nicely(str(query_result[20]))[:8])
+            try:
+                ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel(
+                    General.format_date_nicely(str(query_result[18]))[:8])
+            except:
+                ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel('NA')
+
+            try:
+                ctrl(General.app.new_ecr_dialog, 'label:date_produced').SetLabel(
+                    General.format_date_nicely(str(query_result[19]))[:8])
+            except:
+                ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel('NA')
+
+            try:
+                ctrl(General.app.new_ecr_dialog, 'label:date_shipped').SetLabel(
+                    General.format_date_nicely(str(query_result[20]))[:8])
+            except:
+                ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel('NA')
 
     else:
         print 'validation failed :('
         clear_useful_info_panel()
 
 
-
 def validate_reference_entry():
-    #uppercase user's entry
+    # uppercase user's entry
     text_box = ctrl(General.app.new_ecr_dialog, 'text:reference_number')
     selection = text_box.GetSelection()
     value = text_box.GetValue().upper()
     text_box.ChangeValue(value)
     text_box.SetSelection(*selection)
 
-    #validate reference num by entry length and other defining characteristics
+    # validate reference num by entry length and other defining characteristics
     entry = ctrl(General.app.new_ecr_dialog, 'text:reference_number').GetValue()
     if (len(entry) == 7) and (entry[0] == '0'):
         return True

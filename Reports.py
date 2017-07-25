@@ -261,8 +261,8 @@ class EcrReasons(PlotPanel):
             self.reason_data.append((
                 reason,
                 cursor.execute(
-                    'SELECT when_closed FROM ecrs WHERE reason=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(
-                        reason, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+                    'SELECT when_closed FROM ecrs WHERE reason=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND Production_Plant = \'{}\' ORDER BY when_closed ASC'.format(
+                        reason, self.start_date, '{} 23:59:59'.format(self.end_date),Ecrs.Prod_Plant)).fetchall())
             )
 
         # print self.employee_data[-1]
@@ -350,8 +350,8 @@ class EcrDocuments(PlotPanel):
             self.document_data.append((
                 document,
                 cursor.execute(
-                    'SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(
-                        document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+                    'SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND Production_Plant = \'{}\' ORDER BY when_closed ASC'.format(
+                        document, self.start_date, '{} 23:59:59'.format(self.end_date), Ecrs.Prod_Plant)).fetchall())
                 # cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND (resolution LIKE \'%picklist%\' OR resolution LIKE \'%pick list%\' OR request LIKE \'%picklist%\' OR request LIKE \'%pick list%\') ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
             )
 
@@ -445,8 +445,8 @@ class EcrsClosedOnTime(PlotPanel):
 
         # self.ecr_data = cursor.execute("SELECT when_needed, when_closed FROM ecrs WHERE when_needed>\'{}\' AND when_needed<\'{}\' AND when_closed IS NOT NULL ORDER BY when_closed ASC".format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall()
         self.ecr_data = cursor.execute(
-            "SELECT when_needed, when_closed FROM ecrs WHERE when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC".format(
-                self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall()
+            "SELECT when_needed, when_closed FROM ecrs WHERE when_closed>\'{}\' AND when_closed<\'{}\' AND Production_Plant = \'{}\' ORDER BY when_closed ASC".format(
+                self.start_date, '{} 23:59:59'.format(self.end_date), Ecrs.Prod_Plant)).fetchall()
         # self.ecr_data = cursor.execute("SELECT when_needed, when_closed FROM ecrs WHERE reason <> 'BOM Reconciliation' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC".format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall()
         print self.ecr_data
 
@@ -522,103 +522,97 @@ class EcrsClosedOnTime(PlotPanel):
 
 
 class EcrsByProductFamily(PlotPanel):
-    def __init__(self, parent, start_date, end_date, **kwargs):
-        self.parent = parent
+	def __init__( self, parent, start_date, end_date, **kwargs ):
+		self.parent = parent
 
-        self.start_date = start_date
-        self.end_date = end_date
+		self.start_date = start_date
+		self.end_date = end_date
 
-        cursor = Database.connection.cursor()
+		cursor = Database.connection.cursor()
 
-        try:
-            families = list(zip(*cursor.execute(
-                'SELECT {}.family FROM ecrs INNER JOIN {} ON ecrs.item = {}.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY {}.family ASC'.format(
-                    Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, self.start_date,
-                    '{} 23:59:59'.format(self.end_date), Ecrs.table_used)).fetchall())[0])
-        except:
-            families = []
-        # remove duplicate families from list
-        families = list(set(families))
-        families.sort()
+		try:
+			families = list(zip(*cursor.execute('SELECT {}.family FROM ecrs INNER JOIN {} ON ecrs.item = {}.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' AND ecrs.Production_Plant = \'{}\' ORDER BY {}.family ASC'.format(Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, self.start_date, '{} 23:59:59'.format(self.end_date), Ecrs.Prod_Plant, Ecrs.table_used)).fetchall())[0])
+		except:
+			families = []
+		#remove duplicate families from list
+		families = list(set(families))
+		families.sort()
 
-        self.family_data = []
-        for family_index, family in enumerate(families):
-            self.family_data.append((
-                family,
-                # cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
-                # cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND (resolution LIKE \'%picklist%\' OR resolution LIKE \'%pick list%\' OR request LIKE \'%picklist%\' OR request LIKE \'%pick list%\') ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
-                cursor.execute(
-                    'SELECT ecrs.when_closed FROM ecrs INNER JOIN {} ON ecrs.item = {}.item WHERE {}.family=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(
-                        Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, family, self.start_date,
-                        '{} 23:59:59'.format(self.end_date))).fetchall())
-            )
+		self.family_data = []
+		for family_index, family in enumerate(families):
+			self.family_data.append( (
+					family, 
+					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND (resolution LIKE \'%picklist%\' OR resolution LIKE \'%pick list%\' OR request LIKE \'%picklist%\' OR request LIKE \'%pick list%\') ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+					cursor.execute('SELECT ecrs.when_closed FROM ecrs INNER JOIN orders ON ecrs.item = orders.item WHERE orders.family=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(family, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+				)
 
-        # initiate plotter
-        PlotPanel.__init__(self, parent, **kwargs)
-        self.SetColor((255, 255, 255))
+		#initiate plotter
+		PlotPanel.__init__( self, parent, **kwargs )
+		self.SetColor( (255,255,255) )
 
-    def draw(self):
-        """Draw data."""
-        if not hasattr(self, 'subplot'):
-            self.subplot = self.figure.add_subplot(111)
+	def draw(self):
+		"""Draw data."""
+		if not hasattr(self, 'subplot'):
+			self.subplot = self.figure.add_subplot(111)
 
-        total_ecrs = 0
+		total_ecrs = 0
 
-        for index, data in enumerate(self.family_data):
-            x = [dt.datetime.strptime(str(p[0]), "%Y-%m-%d %H:%M:%S") for p in data[1]]
-            # print x
+		for index, data in enumerate(self.family_data):
+			x = [dt.datetime.strptime(str(p[0]), "%Y-%m-%d %H:%M:%S") for p in data[1]]
+			#print x
 
-            # skip this document if not ecrs closed with it
-            if not x:
-                continue
+			#skip this document if not ecrs closed with it
+			if not x:
+				continue
+			
+			family_sum = 0
+			y = []
+			for p in data[1]:
+				family_sum += 1
+				y.append(family_sum)
+				
+			total_ecrs += family_sum
 
-            family_sum = 0
-            y = []
-            for p in data[1]:
-                family_sum += 1
-                y.append(family_sum)
+			family = data[0]
 
-            total_ecrs += family_sum
+			#self.subplot.plot_date(x, y, '-', label='{}: {}'.format(document, document_sum))
+			self.subplot.plot_date(x, y, '-', label='{}: {}'.format(family, family_sum))
+			
+			annotation_x_index = int((len(x)-index)*.92)
+			annotation_y_index = int((len(y)-index)*.92)
 
-            family = data[0]
+			if annotation_x_index < 0: annotation_x_index = len(x)-1
+			if annotation_y_index < 0: annotation_y_index = len(y)-1
 
-            # self.subplot.plot_date(x, y, '-', label='{}: {}'.format(document, document_sum))
-            self.subplot.plot_date(x, y, '-', label='{}: {}'.format(family, family_sum))
+			self.subplot.annotate(family, xy=(x[annotation_x_index], y[annotation_y_index]), xytext=(-15,15), 
+						textcoords='offset points', ha='center', va='bottom',
+						bbox=dict(boxstyle='round,pad=0.2', fc='yellow', alpha=0.5),
+						arrowprops=dict(arrowstyle='->', connectionstyle='arc3', color='black'))
 
-            annotation_x_index = int((len(x) - index) * .92)
-            annotation_y_index = int((len(y) - index) * .92)
 
-            if annotation_x_index < 0: annotation_x_index = len(x) - 1
-            if annotation_y_index < 0: annotation_y_index = len(y) - 1
+		ticks = get_ticks(self.start_date, self.end_date)
+		self.subplot.xaxis.set_major_locator(ticks[0])
+		self.subplot.xaxis.set_major_formatter(ticks[1])
+		
+		if ticks[2] != None:
+			self.subplot.xaxis.set_minor_locator(ticks[2])
+			self.subplot.xaxis.set_minor_formatter(ticks[3])
+		
+		self.subplot.xaxis.set_label_text('Time Period')
+		self.subplot.yaxis.set_label_text('ECRs Closed')
+		self.subplot.set_title(r"ECRs by Product Family   ({} total)".format(total_ecrs))
+		
+		#self.subplot.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+		#self.subplot.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=.8, prop={'size':10})
+		#self.subplot.legend(bbox_to_anchor=(0, 1), loc=2, fancybox=True, borderaxespad=.8, prop={'size':self.figure.get_figheight() * 1.4})
+		self.subplot.legend(bbox_to_anchor=(0, 1), loc=2, fancybox=True, borderaxespad=.8, prop={'size':self.figure.get_figheight() * 0.8})
 
-            self.subplot.annotate(family, xy=(x[annotation_x_index], y[annotation_y_index]), xytext=(-15, 15),
-                                  textcoords='offset points', ha='center', va='bottom',
-                                  bbox=dict(boxstyle='round,pad=0.2', fc='yellow', alpha=0.5),
-                                  arrowprops=dict(arrowstyle='->', connectionstyle='arc3', color='black'))
+		self.subplot.autoscale_view()
+		self.subplot.grid(True)
 
-        ticks = get_ticks(self.start_date, self.end_date)
-        self.subplot.xaxis.set_major_locator(ticks[0])
-        self.subplot.xaxis.set_major_formatter(ticks[1])
-
-        if ticks[2] != None:
-            self.subplot.xaxis.set_minor_locator(ticks[2])
-            self.subplot.xaxis.set_minor_formatter(ticks[3])
-
-        self.subplot.xaxis.set_label_text('Time Period')
-        self.subplot.yaxis.set_label_text('ECRs Closed')
-        self.subplot.set_title(r"ECRs by Product Family   ({} total)".format(total_ecrs))
-
-        # self.subplot.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        # self.subplot.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=.8, prop={'size':10})
-        # self.subplot.legend(bbox_to_anchor=(0, 1), loc=2, fancybox=True, borderaxespad=.8, prop={'size':self.figure.get_figheight() * 1.4})
-        self.subplot.legend(bbox_to_anchor=(0, 1), loc=2, fancybox=True, borderaxespad=.8,
-                            prop={'size': self.figure.get_figheight() * 0.8})
-
-        self.subplot.autoscale_view()
-        self.subplot.grid(True)
-
-        # gives x-axis tick labels a slight rotation for better fitting
-        self.figure.autofmt_xdate()
+		#gives x-axis tick labels a slight rotation for better fitting
+		self.figure.autofmt_xdate()
 
 
 class EcrsByCustomer(PlotPanel):
@@ -632,9 +626,9 @@ class EcrsByCustomer(PlotPanel):
 
         try:
             customers = list(zip(*cursor.execute(
-                'SELECT {}.customer FROM ecrs INNER JOIN {} ON ecrs.item = {}.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY {}.customer ASC'.format(
+                'SELECT {}.customer FROM ecrs INNER JOIN {} ON ecrs.item = {}.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' AND ecrs.Production_Plant = \'{}\' ORDER BY {}.customer ASC'.format(
                     Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, self.start_date,
-                    '{} 23:59:59'.format(self.end_date), Ecrs.table_used)).fetchall())[0])
+                    '{} 23:59:59'.format(self.end_date), Ecrs.Prod_Plant, Ecrs.table_used)).fetchall())[0])
         except:
             customers = []
         # remove duplicate customers from list
