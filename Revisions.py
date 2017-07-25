@@ -259,7 +259,7 @@ def on_click_submit_revision(event):
             sql += '\'{}\', '.format(when_revised)
             sql += '{}, '.format(dollars_reconciled)
             sql += '\'{}\')'.format(related_ecr)
-            sql += '\'{}\', '.format(Ecrs.table_used)
+            sql += '\'{}\', '.format(Ecrs.Prod_Plant)
 
             # print sql
             cursor.execute(sql)

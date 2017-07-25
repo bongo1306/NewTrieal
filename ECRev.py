@@ -1454,10 +1454,15 @@ def on_click_login(event):
 
     if  selected_plant == "Cases":
         Ecrs.table_used = 'orders_cases'
+        Ecrs.Prod_Plant = 'Cases'
     elif selected_plant == 'Systems':
         Ecrs.table_used = 'orders'
+        Ecrs.Prod_Plant = 'Systems'
     else:
         Ecrs.table_used = ''
+        Ecrs.Prod_Plant = 'NULL'
+
+
 
     print Ecrs.table_used
 

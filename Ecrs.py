@@ -397,8 +397,19 @@ def check_description_for_parts(event):
     except:
         print 'Failed to connect to DBworks database'
 '''
-
+#Set table to be used from database based on Plant selection during Login event
 table_used = ''
+
+#Update Prod_Plant value based on Plant selected during Login event
+Prod_Plant = ''
+"""
+if table_used == "orders_cases":
+     Prod_Plant = 'Cases'
+elif table_used == "orders":
+     Prod_Plant = 'Systems'
+else:
+     Prod_Plant = ''
+"""
 
 def check_reference_field(event):
     entry = ctrl(General.app.new_ecr_dialog, 'text:reference_number').GetValue()
@@ -676,7 +687,7 @@ def on_click_close_ecr(event):
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
         sql += "'{}')".format(new_reason_code)
-        sql += '\'{}\', '.format(table_used)
+        sql += '\'{}\', '.format(Prod_Plant)
         cursor.execute(sql)
 
 
@@ -1018,7 +1029,7 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{} 23:59:00\')'.format(need_by_date)
-        sql += '\'{}\', '.format(table_used)
+        sql += '\'{}\', '.format(Prod_Plant)
     else:
         sql = 'INSERT INTO ecrs (id, status, reference_number, document, reason, department, who_requested, type, request, attachment, when_requested, when_needed, Production_Plant) VALUES ('
         sql += '{}, '.format(new_id)
@@ -1033,7 +1044,7 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{} 23:59:00\')'.format(need_by_date)
-        sql += '\'{}\', '.format(table_used)
+        sql += '\'{}\', '.format(Prod_Plant)
 
     #print sql
     cursor.execute(sql)
@@ -1086,7 +1097,7 @@ def on_click_modify_ecr(event):
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
         sql += "'{}')".format(new_reason_code)
-        sql += '\'{}\', '.format(table_used)
+        sql += '\'{}\', '.format(Prod_Plant)
         cursor.execute(sql)
 
 
@@ -1489,6 +1500,7 @@ def radio_button_selected(event, type):
 
 
 
+
 def refresh_closed_ecrs_list(event=None, limit=15):
     closed_ecr_list = ctrl(General.app.main_frame, 'list:closed_ecrs')
 
@@ -1514,7 +1526,7 @@ def refresh_closed_ecrs_list(event=None, limit=15):
 
     user_department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE status = \'Closed\' ORDER BY when_closed DESC".format(limit))
+    cursor.execute("SELECT TOP {} * FROM ecrs WHERE status = \'Closed\' AND Production_Plant = \'{}\' ORDER BY when_closed DESC".format(limit, Prod_Plant))
     records = cursor.fetchall()
 
     for ecr_index, ecr in enumerate(records):
@@ -1689,7 +1701,7 @@ def refresh_my_ecrs_list(event=None, limit=15):
 
     user_department = cursor.execute("SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE who_requested = \'{}\' ORDER BY when_requested DESC".format(limit, General.app.current_user))
+    cursor.execute("SELECT TOP {} * FROM ecrs WHERE who_requested = \'{}\' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(limit, General.app.current_user, Prod_Plant))
     records = cursor.fetchall()
 
     for ecr_index, ecr in enumerate(records):
@@ -1807,7 +1819,7 @@ def refresh_my_assigned_ecrs_list(event=None, limit=15):
 
     user_department = cursor.execute("SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE who_assigned = \'{}\' AND status='Open' ORDER BY when_requested DESC".format(limit, General.app.current_user))
+    cursor.execute("SELECT TOP {} * FROM ecrs WHERE who_assigned = \'{}\' AND status='Open' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(limit, General.app.current_user, Prod_Plant))
     records = cursor.fetchall()
 
     for ecr_index, ecr in enumerate(records):
@@ -1938,9 +1950,9 @@ def refresh_open_ecrs_list(event=None, limit=100):
         LEFT JOIN      
             dbo.{} ON ecrs.item = {}.item
         WHERE 
-            ecrs.status = 'Open'
+            ecrs.status = 'Open' AND Production_Plant = \'{}\'
         ORDER BY 
-            {}.sales_order ASC, {}.line_up ASC'''.format(table_used, table_used, table_used, table_used, table_used, table_used))
+            {}.sales_order ASC, {}.line_up ASC'''.format(table_used, table_used, table_used, table_used, Prod_Plant, table_used, table_used))
 
     records = cursor.fetchall()
 
@@ -2064,7 +2076,7 @@ def refresh_committee_ecrs_list(event=None, limit=100):
 
     #user_department = cursor.execute("SELECT TOP 1 department FROM employees WHERE name = \'{}\'".format(General.app.current_user)).fetchone()[0]
 
-    cursor.execute("SELECT TOP {} * FROM ecrs WHERE status='Open' AND approval_stage='New Request, needs reviewing' ORDER BY when_requested DESC".format(limit, General.app.current_user))
+    cursor.execute("SELECT TOP {} * FROM ecrs WHERE status='Open' AND approval_stage='New Request, needs reviewing' AND Production_Plant = \'{}\' ORDER BY when_requested DESC".format(limit, Prod_Plant, General.app.current_user))
     records = cursor.fetchall()
 
     new_records = []
