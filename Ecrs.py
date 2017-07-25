@@ -218,28 +218,28 @@ def get_similar_items(item):
     try:
         cursor = Database.connection.cursor()
 
-        customer, family = cursor.execute("SELECT customer, family FROM orders_cases WHERE item='{}'".format(item)).fetchone()
+        customer, family = cursor.execute("SELECT customer, family FROM {} WHERE item='{}'".format(Ecrs.table_used, item)).fetchone()
 
         sql = '''
             SELECT
-                orders_cases.sales_order, 
-                orders_cases.item,
+                {}.sales_order, 
+                {}.item,
                 item_responsibilities2.project_lead,
                 item_responsibilities2.mechanical_engineer,
                 item_responsibilities2.electrical_engineer,
                 item_responsibilities2.structural_engineer
             FROM 
-                orders_cases LEFT JOIN item_responsibilities2 ON orders_cases.item = item_responsibilities2.item
+                {} LEFT JOIN item_responsibilities2 ON {}.item = item_responsibilities2.item
             WHERE
-                orders_cases.item <> '{}' AND 
-                orders_cases.customer = '{}' AND
-                orders_cases.family = '{}' AND
-                orders_cases.date_produced IS NULL AND
-                orders_cases.date_de_released IS NOT NULL AND
-                orders_cases.is_canceled = 0
+                {}.item <> '{}' AND 
+                {}.customer = '{}' AND
+                {}.family = '{}' AND
+                {}.date_produced IS NULL AND
+                {}.date_de_released IS NOT NULL AND
+                {}.is_canceled = 0
             ORDER BY
-                orders_cases.item
-        '''.format(item, customer.replace("'", "''"), family)
+                {}.item
+        '''.format(Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, item, Ecrs.table_used, customer.replace("'", "''"), Ecrs.table_used, family, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used)
         similar_items = cursor.execute(sql).fetchall()
 
         sales_orders = list(set(zip(*similar_items)[0]))
@@ -670,12 +670,13 @@ def on_click_close_ecr(event):
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(id)).fetchone()[0]
     new_reason_code = reason
     if previous_reason_code != new_reason_code:
-        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, new_code) VALUES ("
+        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, new_code, Production_Plant) VALUES ("
         sql += "{}, ".format(id)
         sql += "'{}', ".format(General.app.current_user)
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
         sql += "'{}')".format(new_reason_code)
+		sql += '\'{}\', '.format(Ecrs.table_used)
         cursor.execute(sql)
 
 
@@ -756,7 +757,7 @@ def on_click_close_ecr(event):
 
     ecr = cursor.execute('SELECT TOP 1 id, reference_number, request, resolution, who_requested, who_errored, item, type, document FROM ecrs WHERE id = \'{}\''.format(id)).fetchone()
     #order = Database.get_order_data_from_ref(reference_number)
-    order = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(ecr[6])).fetchone()
+    order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, ecr[6])).fetchone()
 
     #takes a little longer to send an email so put it in a serperate thread so user
     # doesn't have to wait around :)
@@ -886,27 +887,27 @@ def on_click_print_ecr(event):
         return
 
     cursor = Database.connection.cursor()
-    #order = cursor.execute('SELECT TOP 1 item, sales_order, line_up, customer, city, state, model, mechanical_by, electrical_by, structural_by FROM orders_cases WHERE item = \'{}\''.format(item_number)).fetchone()
+    #order = cursor.execute('SELECT TOP 1 item, sales_order, line_up, customer, city, state, model, mechanical_by, electrical_by, structural_by FROM {} WHERE item = \'{}\''.format(Ecrs.table_used, item_number)).fetchone()
     ecr = cursor.execute('SELECT TOP 1 id, reference_number, document, reason, who_requested, department, when_needed, request, resolution FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()
 
     order = cursor.execute('''
         SELECT TOP 1
-            orders_cases.item,
-            orders_cases.sales_order,
-            orders_cases.line_up,
-            orders_cases.customer,
-            orders_cases.city,
-            orders_cases.state,
-            orders_cases.model,
-            orders_cases.mechanical_by,
-            orders_cases.electrical_by,
-            orders_cases.structural_by,
+            {}.item,
+            {}.sales_order,
+            {}.line_up,
+            {}.customer,
+            {}.city,
+            {}.state,
+            {}.model,
+            {}.mechanical_by,
+            {}.electrical_by,
+            {}.structural_by,
             item_responsibilities2.mechanical_cad_designer,
             item_responsibilities2.electrical_cad_designer,
             item_responsibilities2.structural_cad_designer
-        FROM orders_cases LEFT JOIN item_responsibilities2 ON orders_cases.item = item_responsibilities2.item WHERE
-            orders_cases.item = '{}'	
-        '''.format(item_number)).fetchone()
+        FROM {} LEFT JOIN item_responsibilities2 ON {}.item = item_responsibilities2.item WHERE
+            {}.item = '{}'	
+        '''.format(Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used,item_number)).fetchone()
 
     html_to_print = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>'''
 
@@ -1003,7 +1004,7 @@ def on_click_submit_ecr(event):
     new_id = cursor.execute("SELECT MAX(id) FROM ecrs").fetchone()[0] + 1
 
     if item_number != None:
-        sql = 'INSERT INTO ecrs (id, status, reference_number, item, document, reason, department, who_requested, type, request, attachment, when_requested, when_needed) VALUES ('
+        sql = 'INSERT INTO ecrs (id, status, reference_number, item, document, reason, department, who_requested, type, request, attachment, when_requested, when_needed, Production_Plant) VALUES ('
         sql += '{}, '.format(new_id)
         sql += '\'Open\', '
         sql += '\'{}\', '.format(reference_number)
@@ -1017,8 +1018,9 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{} 23:59:00\')'.format(need_by_date)
+		sql += '\'{}\', '.format(Ecrs.table_used)
     else:
-        sql = 'INSERT INTO ecrs (id, status, reference_number, document, reason, department, who_requested, type, request, attachment, when_requested, when_needed) VALUES ('
+        sql = 'INSERT INTO ecrs (id, status, reference_number, document, reason, department, who_requested, type, request, attachment, when_requested, when_needed, Production_Plant) VALUES ('
         sql += '{}, '.format(new_id)
         sql += '\'Open\', '
         sql += '\'{}\', '.format(reference_number)
@@ -1031,6 +1033,7 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{} 23:59:00\')'.format(need_by_date)
+		sql += '\'{}\', '.format(Ecrs.table_used)
 
     #print sql
     cursor.execute(sql)
@@ -1077,12 +1080,13 @@ def on_click_modify_ecr(event):
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(ecr_id)).fetchone()[0]
     new_reason_code = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
     if previous_reason_code != new_reason_code:
-        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, new_code) VALUES ("
+        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, new_code, Production_Plant) VALUES ("
         sql += "{}, ".format(ecr_id)
         sql += "'{}', ".format(General.app.current_user)
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
         sql += "'{}')".format(new_reason_code)
+		sql += '\'{}\', '.format(Ecrs.table_used)
         cursor.execute(sql)
 
 
@@ -1242,7 +1246,7 @@ def on_select_assign_ecr(event):
 
     ecr = cursor.execute('SELECT TOP 1 id, reference_number, request, resolution, who_requested, who_errored, item FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()
     #order = Database.get_order_data_from_ref(ecr[1])
-    order = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(ecr[6])).fetchone()
+    order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, ecr[6])).fetchone()
 
     if name != '':
         #takes a little longer to send an email so put it in a serperate thread so user
@@ -1347,27 +1351,27 @@ def populate_ecr_order_panel(item_number):
     cursor = Database.connection.cursor()
 
     #item_number =
-    #cursor.execute("SELECT * FROM orders_cases WHERE item=\'{}\'".format(item_number))
+    #cursor.execute("SELECT * FROM {} WHERE item=\'{}\'".format(Ecrs.table_used, item_number))
     #query_result = Database.get_order_data_from_ref(ref_number)
-    #query_result = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(item_number)).fetchone()
+    #query_result = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, item_number)).fetchone()
 
     query_result = cursor.execute('''
         SELECT TOP 1
-            orders_cases.item,
-            orders_cases.sales_order,
-            orders_cases.line_up,
-            orders_cases.serial,
-            orders_cases.customer,
-            orders_cases.mechanical_by,
-            orders_cases.electrical_by,
-            orders_cases.structural_by,
+            {}.item,
+            {}.sales_order,
+            {}.line_up,
+            {}.serial,
+            {}.customer,
+            {}.mechanical_by,
+            {}.electrical_by,
+            {}.structural_by,
             item_responsibilities2.mechanical_cad_designer,
             item_responsibilities2.electrical_cad_designer,
             item_responsibilities2.structural_cad_designer,
-            orders_cases.model
-        FROM orders_cases LEFT JOIN item_responsibilities2 ON orders_cases.item = item_responsibilities2.item WHERE
-            orders_cases.item = '{}'	
-        '''.format(item_number)).fetchone()
+            {}.model
+        FROM {} LEFT JOIN item_responsibilities2 ON {}.item = item_responsibilities2.item WHERE
+            {}.item = '{}'	
+        '''.format(Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, item_number)).fetchone()
 
     #replace NULLs in results with blank string
     if query_result != None:
@@ -1521,7 +1525,7 @@ def refresh_closed_ecrs_list(event=None, limit=15):
         reference_number = ecr[2]
         if reference_number != None:
             #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(ecr[3])).fetchone()
+            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, ecr[3])).fetchone()
 
             if order_data != None:
                 sales_order = str(order_data[1]) +'-'+ str(order_data[2])
@@ -1699,7 +1703,7 @@ def refresh_my_ecrs_list(event=None, limit=15):
         reference_number = ecr[2]
         if reference_number != None:
             #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(ecr[3])).fetchone()
+            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, ecr[3])).fetchone()
 
             if order_data != None:
                 sales_order = str(order_data[1]) +'-'+ str(order_data[2])
@@ -1817,7 +1821,7 @@ def refresh_my_assigned_ecrs_list(event=None, limit=15):
         reference_number = ecr[2]
         if reference_number != None:
             #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(ecr[3])).fetchone()
+            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, ecr[3])).fetchone()
 
             if order_data != None:
                 sales_order = str(order_data[1]) +'-'+ str(order_data[2])
@@ -1911,8 +1915,8 @@ def refresh_open_ecrs_list(event=None, limit=100):
             ecrs.id,
             ecrs.who_claimed,
             ecrs.who_assigned,
-            orders_cases.sales_order,
-            orders_cases.line_up,
+            {}.sales_order,
+            {}.line_up,
             ecrs.item,
             ecrs.request,
             ecrs.who_requested,
@@ -1932,11 +1936,11 @@ def refresh_open_ecrs_list(event=None, limit=100):
         FROM 
             dbo.ecrs
         LEFT JOIN      
-            dbo.orders_cases ON ecrs.item = orders_cases.item
+            dbo.{} ON ecrs.item = {}.item
         WHERE 
             ecrs.status = 'Open'
         ORDER BY 
-            orders_cases.sales_order ASC, orders_cases.line_up ASC''')
+            {}.sales_order ASC, {}.line_up ASC'''.format(Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, Ecrs.table_used))
 
     records = cursor.fetchall()
 
@@ -2083,7 +2087,7 @@ def refresh_committee_ecrs_list(event=None, limit=100):
         reference_number = ecr[2]
         if reference_number != None:
             #order_data = Database.get_order_data_from_ref(reference_number)
-            order_data = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(ecr[3])).fetchone()
+            order_data = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format( Ecrs.table_used, ecr[3])).fetchone()
 
             if order_data != None:
                 sales_order = str(order_data[1]) +'-'+ str(order_data[2])

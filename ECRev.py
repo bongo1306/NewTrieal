@@ -809,7 +809,7 @@ class ECRevApp(wx.App):
         # get more data on the ecr's order
         ecr = cursor.execute("SELECT * FROM ecrs WHERE id = \'{}\'".format(ecr_id)).fetchone()
         # order = Database.get_order_data_from_ref(ecr[2])
-        order = cursor.execute("SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\'".format(ecr[3])).fetchone()
+        order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, ecr[3])).fetchone()
         ecr_details = ''
         if order != None:
             ecr_details = "ECR ID: " + str(ecr[0]) + \
@@ -1147,20 +1147,20 @@ class ECRevApp(wx.App):
 
         # so we can search a table with more criteria
         self.joining_tables = []
-        self.joining_tables.append(('ecrs', 'orders_cases', 'item', 'item'))
+        self.joining_tables.append(('ecrs', Ecrs.table_used, 'item', 'item'))
         self.joining_tables.append(('ecrs', 'revisions', 'id', 'related_ecr'))
-        self.joining_tables.append(('revisions', 'orders_cases', 'item', 'item'))
+        self.joining_tables.append(('revisions', Ecrs.table_used, 'item', 'item'))
         self.joining_tables.append(('revisions', 'ecrs', 'related_ecr', 'id'))
-        self.joining_tables.append(('orders_cases', 'revisions', 'item', 'item'))
-        self.joining_tables.append(('orders_cases', 'ecrs', 'item', 'item'))
-        # self.joining_tables.append(('time_logs', 'orders_cases', 'item', 'item'))
+        self.joining_tables.append((Ecrs.table_used, 'revisions', 'item', 'item'))
+        self.joining_tables.append((Ecrs.table_used, 'ecrs', 'item', 'item'))
+        # self.joining_tables.append(('time_logs', Ecrs.table_used, 'item', 'item'))
 
 
         cursor = Database.connection.cursor()
         # tables = list(zip(*cursor.execute(r"SELECT name FROM sqlite_master WHERE type in ('table', 'view') AND name NOT LIKE 'sqlite_%' UNION ALL SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view') ORDER BY 1").fetchall())[0])
         tables = list(zip(*cursor.execute('SELECT * FROM information_schema.tables ORDER BY table_name').fetchall())[2])
 
-        table_white_list = ['ecrs', 'orders_cases', 'revisions']
+        table_white_list = ['ecrs', Ecrs.table_used, 'revisions']
 
         '''
         table_black_list = []

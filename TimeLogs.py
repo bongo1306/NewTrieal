@@ -72,7 +72,7 @@ def on_click_log_time(event):
 		return
 
 	#check if item number is valid
-	if cursor.execute("SELECT TOP 1 item FROM orders_cases WHERE item = \'{}\'".format(item_field.GetValue())).fetchone() == None:
+	if cursor.execute("SELECT TOP 1 item FROM {} WHERE item = \'{}\'".format(Ecrs.table_used, item_field.GetValue())).fetchone() == None:
 		wx.MessageBox('The item number you entered was not found in the orders_cases table.\nIt may be a typo or the orders_cases table is not up to date.', 'Hint', wx.OK | wx.ICON_WARNING)
 		return
 

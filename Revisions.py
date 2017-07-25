@@ -244,7 +244,7 @@ def on_click_submit_revision(event):
 				if ctrl(General.app.new_revision_dialog, 'text:rec_dollars').GetValue() != '':
 					dollars_reconciled = ctrl(General.app.new_revision_dialog, 'text:rec_dollars').GetValue()
 			
-			sql = 'INSERT INTO revisions (item, document, level, description, reason, who_revised, when_revised, dollars_reconciled, related_ecr) VALUES ('
+			sql = 'INSERT INTO revisions (item, document, level, description, reason, who_revised, when_revised, dollars_reconciled, related_ecr, Production_Plant) VALUES ('
 			sql += '\'{}\', '.format(item_entry)
 			sql += '\'{}\', '.format(new_revision_record[0])
 			sql += '{}, '.format(level)
@@ -254,6 +254,8 @@ def on_click_submit_revision(event):
 			sql += '\'{}\', '.format(when_revised)
 			sql += '{}, '.format(dollars_reconciled)
 			sql += '\'{}\')'.format(related_ecr)
+			sql += '\'{}\', '.format(Ecrs.table_used)
+			
 			
 			#print sql
 			cursor.execute(sql)
@@ -266,7 +268,7 @@ def on_click_submit_revision(event):
 			
 			
 			revision = cursor.execute('SELECT TOP 1 * FROM revisions WHERE id = \'{}\''.format(latest_id)).fetchone()
-			order = cursor.execute('SELECT TOP 1 * FROM orders_cases WHERE item = \'{}\''.format(revision[1])).fetchone()
+			order = cursor.execute('SELECT TOP 1 * FROM {} WHERE item = \'{}\''.format(Ecrs.table_used, revision[1])).fetchone()
 			
 			Database.connection.commit()
 			
@@ -336,13 +338,13 @@ def on_entry_revision_items(event):
 		entry = entry.strip()
 		if entry != '':
 			#see if entry is in the order database
-			order = cursor.execute("SELECT TOP 1 sales_order FROM orders_cases WHERE item LIKE '%{}%'".format(entry)).fetchone()
+			order = cursor.execute("SELECT TOP 1 sales_order FROM {} WHERE item LIKE '%{}%'".format(Ecrs.table_used, entry)).fetchone()
 			if order != None:
 				if len(entry) == 9 or \
 					(len(entry) == 7 and entry[:2] == '01') or \
 					(len(entry) == 8 and entry[:2] != 'KW') or \
 					len(entry) == 18:
-					entry = cursor.execute("SELECT TOP 1 item FROM orders_cases WHERE item LIKE '%{}%'".format(entry)).fetchone()[0]
+					entry = cursor.execute("SELECT TOP 1 item FROM {} WHERE item LIKE '%{}%'".format(Ecrs.table_used, entry)).fetchone()[0]
 					valid_entries.append('{} ({})'.format(entry, order[0]))
 
 	if len(valid_entries) == 0:
@@ -449,7 +451,7 @@ def onCharEvent(event):
 		revision_id = list.GetItem(list.GetFirstSelected(), 0).GetText()
 		revision = cursor.execute("SELECT * FROM revisions WHERE id = {}".format(revision_id)).fetchall()[0]
 		#print 'revision', revision
-		order = cursor.execute("SELECT * FROM orders_cases WHERE item = '{}'".format(revision[1])).fetchall()[0]
+		order = cursor.execute("SELECT * FROM {} WHERE item = '{}'".format(Ecrs.table_used, revision[1])).fetchall()[0]
 		#print 'order', order
 		users_email = cursor.execute("SELECT email FROM employees WHERE name = '{}'".format(General.app.current_user)).fetchall()[0][0]
 		#print 'users_email', users_email
@@ -506,7 +508,7 @@ def send_revision_email(revision, order, email_list, sender):
 	
 	#cursor = Database.connection.cursor()
 	revision = cursor.execute('SELECT * FROM revisions WHERE id = \'{}\' LAMIT 1'.format(revision_id)).fetchone()
-	order = cursor.execute('SELECT * FROM orders_cases WHERE item = \'{}\' LAMIT 1'.format(revision[1])).fetchone()
+	order = cursor.execute('SELECT * FROM {} WHERE item = \'{}\' LAMIT 1'.format(Ecrs.table_used, revision[1])).fetchone()
 	email_list = cursor.execute('SELECT email FROM employees WHERE gets_revision_notice = \'yes\''.format(revision[1])).fetchall()
 	sender = cursor.execute('SELECT email FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
 	'''
@@ -626,7 +628,7 @@ def send_popsheet_email(revision, order, email_list, sender):
 	
 	#cursor = Database.connection.cursor()
 	revision = cursor.execute('SELECT * FROM revisions WHERE id = \'{}\' LAMIT 1'.format(revision_id)).fetchone()
-	order = cursor.execute('SELECT * FROM orders_cases WHERE item = \'{}\' LAMIT 1'.format(revision[1])).fetchone()
+	order = cursor.execute('SELECT * FROM {} WHERE item = \'{}\' LAMIT 1'.format(Ecrs.table_used, revision[1])).fetchone()
 	email_list = cursor.execute('SELECT email FROM employees WHERE gets_revision_notice = \'yes\''.format(revision[1])).fetchall()
 	sender = cursor.execute('SELECT email FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
 	'''
