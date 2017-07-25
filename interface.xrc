@@ -5,7 +5,6 @@
 		<size>900,780</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -1784,7 +1783,6 @@
 		<size>400,330</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -1929,7 +1927,6 @@
 		<size>320,360</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -1953,7 +1950,6 @@
 		<size>650,430</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -2094,7 +2090,6 @@
 		<size>750,550</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -2803,7 +2798,6 @@
 		<style>wxDEFAULT_DIALOG_STYLE</style>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -3796,10 +3790,8 @@
 	</object>
 	<object class="wxFrame" name="frame:login">
 		<style>wxCAPTION|wxCLOSE_BOX|wxSYSTEM_MENU|wxTAB_TRAVERSAL</style>
-		<size>312,145</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -3911,6 +3903,37 @@
 						</object>
 					</object>
 				</object>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxBOTTOM|wxTOP</flag>
+					<border>5</border>
+					<object class="wxBoxSizer">
+						<orient>wxHORIZONTAL</orient>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxLEFT|wxTOP</flag>
+							<border>5</border>
+							<object class="wxStaticText" name="m_staticText36">
+								<style>wxALIGN_RIGHT</style>
+								<size>80,-1</size>
+								<label>Plant:</label>
+								<wrap>-1</wrap>
+							</object>
+						</object>
+						<object class="sizeritem">
+							<option>0</option>
+							<flag>wxALL</flag>
+							<border>5</border>
+							<object class="wxChoice" name="choice:plant">
+								<selection>2</selection>
+								<content>
+									<item>Cases</item>
+									<item>Systems</item>
+								</content>
+							</object>
+						</object>
+					</object>
+				</object>
 			</object>
 		</object>
 	</object>
@@ -3918,7 +3941,6 @@
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -4617,7 +4639,6 @@
 		<style>wxDEFAULT_DIALOG_STYLE</style>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -4659,7 +4680,6 @@
 		<style>wxDEFAULT_DIALOG_STYLE</style>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -4806,7 +4826,6 @@
 		<size>300,100</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -4848,7 +4867,6 @@
 		<size>350,150</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -4878,7 +4896,6 @@
 		<size>450,350</size>
 		<font>
 			<size>10</size>
-			<family>default</family>
 			<style>normal</style>
 			<weight>normal</weight>
 			<underlined>0</underlined>
@@ -4923,7 +4940,6 @@
 											<border>5</border>
 											<object class="wxStaticText" name="m_staticText117">
 												<font>
-													<family>default</family>
 													<style>normal</style>
 													<weight>bold</weight>
 													<underlined>0</underlined>
@@ -4986,7 +5002,6 @@
 											<border>5</border>
 											<object class="wxStaticText" name="m_staticText118">
 												<font>
-													<family>default</family>
 													<style>normal</style>
 													<weight>bold</weight>
 													<underlined>0</underlined>

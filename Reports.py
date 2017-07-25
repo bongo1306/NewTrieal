@@ -536,7 +536,7 @@ class EcrsByProductFamily(PlotPanel):
 		cursor = Database.connection.cursor()
 
 		try:
-			families = list(zip(*cursor.execute('SELECT orders.family FROM ecrs INNER JOIN orders ON ecrs.item = orders.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY orders.family ASC'.format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())[0])
+			families = list(zip(*cursor.execute('SELECT orders_cases.family FROM ecrs INNER JOIN orders_cases ON ecrs.item = orders_cases.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY orders_cases.family ASC'.format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())[0])
 		except:
 			families = []
 		#remove duplicate families from list
@@ -549,7 +549,7 @@ class EcrsByProductFamily(PlotPanel):
 					family, 
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND (resolution LIKE \'%picklist%\' OR resolution LIKE \'%pick list%\' OR request LIKE \'%picklist%\' OR request LIKE \'%pick list%\') ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
-					cursor.execute('SELECT ecrs.when_closed FROM ecrs INNER JOIN orders ON ecrs.item = orders.item WHERE orders.family=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(family, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+					cursor.execute('SELECT ecrs.when_closed FROM ecrs INNER JOIN orders_cases ON ecrs.item = orders_cases.item WHERE orders_cases.family=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(family, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 				)
 
 		#initiate plotter
@@ -630,7 +630,7 @@ class EcrsByCustomer(PlotPanel):
 		cursor = Database.connection.cursor()
 
 		try:
-			customers = list(zip(*cursor.execute('SELECT orders.customer FROM ecrs INNER JOIN orders ON ecrs.item = orders.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY orders.customer ASC'.format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())[0])
+			customers = list(zip(*cursor.execute('SELECT orders_cases.customer FROM ecrs INNER JOIN orders_cases ON ecrs.item = orders_cases.item WHERE ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY orders_cases.customer ASC'.format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())[0])
 		except:
 			customers = []
 		#remove duplicate customers from list
@@ -643,7 +643,7 @@ class EcrsByCustomer(PlotPanel):
 					customer, 
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND (resolution LIKE \'%picklist%\' OR resolution LIKE \'%pick list%\' OR request LIKE \'%picklist%\' OR request LIKE \'%pick list%\') ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
-					cursor.execute('SELECT ecrs.when_closed FROM ecrs INNER JOIN orders ON ecrs.item = orders.item WHERE orders.customer=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(customer, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+					cursor.execute('SELECT ecrs.when_closed FROM ecrs INNER JOIN orders_cases ON ecrs.item = orders_cases.item WHERE orders_cases.customer=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(customer, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 				)
 
 		#initiate plotter
@@ -724,7 +724,7 @@ class HoursLoggedByProductFamily(PlotPanel):
 
 		cursor = Database.connection.cursor()
 
-		families = list(zip(*cursor.execute('SELECT orders.family FROM time_logs INNER JOIN orders ON time_logs.item = orders.item WHERE time_logs.when_logged>\'{}\' AND time_logs.when_logged<\'{}\' ORDER BY orders.family ASC'.format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())[0])
+		families = list(zip(*cursor.execute('SELECT orders_cases.family FROM time_logs INNER JOIN orders_cases ON time_logs.item = orders_cases.item WHERE time_logs.when_logged>\'{}\' AND time_logs.when_logged<\'{}\' ORDER BY orders_cases.family ASC'.format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())[0])
 		#remove duplicate families from list
 		families = list(set(families))
 		families.sort()
@@ -736,7 +736,7 @@ class HoursLoggedByProductFamily(PlotPanel):
 					family, 
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND (resolution LIKE \'%picklist%\' OR resolution LIKE \'%pick list%\' OR request LIKE \'%picklist%\' OR request LIKE \'%pick list%\') ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
-					cursor.execute('SELECT time_logs.when_logged, time_logs.hours FROM time_logs INNER JOIN orders ON time_logs.item = orders.item WHERE orders.family=\'{}\' AND time_logs.when_logged>\'{}\' AND time_logs.when_logged<\'{}\' ORDER BY time_logs.when_logged ASC'.format(family, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+					cursor.execute('SELECT time_logs.when_logged, time_logs.hours FROM time_logs INNER JOIN orders_cases ON time_logs.item = orders_cases.item WHERE orders_cases.family=\'{}\' AND time_logs.when_logged>\'{}\' AND time_logs.when_logged<\'{}\' ORDER BY time_logs.when_logged ASC'.format(family, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 				)
 
 		#initiate plotter

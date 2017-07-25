@@ -356,7 +356,7 @@ def generate_sql_query():
 					sql += 'INNER JOIN {} ON {}.{} = {}.{} '.format(joining_table[1], joining_table[0],  joining_table[2], joining_table[1], joining_table[3])
 					break
 	
-	#INNER JOIN orders ON ecrs.item = orders.item
+	#INNER JOIN orders_cases ON ecrs.item = orders_cases.item
 	sql += 'WHERE {}'.format(sql_criteria[:-4])
 
 	
