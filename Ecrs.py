@@ -2796,7 +2796,7 @@ def validate_reference_entry():
         return True
     elif len(entry) == 8 and entry[0] == '2':
         return True
-	elif len(entry) == 7 and entry[0] == '8':
+    elif len(entry) == 7 and entry[0] == '8':
         return True
     else:
         return False
