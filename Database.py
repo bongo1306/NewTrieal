@@ -13,6 +13,7 @@ import ConfigParser
 import General
 
 import wx
+import Ecrs
 
 
 def connect_to_database():
@@ -55,43 +56,43 @@ def connect_to_database():
 
 '''
 def get_order_data_from_ref(reference_number):
-	if reference_number == None: return
-	
-	try:
-		cursor = connection.cursor()
-		##cursor.execute("SELECT * FROM ecrs WHERE who_requested = \'{}\'".format(General.app.current_user)) ### ORDER BY date_requested ASC")
-		
-		#determine reference type by reference_number length and other defining characteristics
-		if (len(reference_number) == 7) and (reference_number[0] == '0'):
-			#it might be an item number, search for it in the DB
-			return cursor.execute("SELECT * FROM {} WHERE item = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number)).fetchone()
+    if reference_number == None: return
+    
+    try:
+        cursor = connection.cursor()
+        ##cursor.execute("SELECT * FROM ecrs WHERE who_requested = \'{}\'".format(General.app.current_user)) ### ORDER BY date_requested ASC")
+        
+        #determine reference type by reference_number length and other defining characteristics
+        if (len(reference_number) == 7) and (reference_number[0] == '0'):
+            #it might be an item number, search for it in the DB
+            return cursor.execute("SELECT * FROM {} WHERE item = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number)).fetchone()
 
-		elif (len(reference_number) == 9) and (reference_number[0:3] == 'KW0'):
-			#it might be an item number with KW prefix, search for it in the DB
-			return cursor.execute("SELECT * FROM {} WHERE item = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number)).fetchone()
+        elif (len(reference_number) == 9) and (reference_number[0:3] == 'KW0'):
+            #it might be an item number with KW prefix, search for it in the DB
+            return cursor.execute("SELECT * FROM {} WHERE item = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number)).fetchone()
 
-		elif len(reference_number) == 10:
-			#it might be a serial number, search for it in the DB
-			return cursor.execute("SELECT * FROM {} WHERE serial = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number)).fetchone()
+        elif len(reference_number) == 10:
+            #it might be a serial number, search for it in the DB
+            return cursor.execute("SELECT * FROM {} WHERE serial = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number)).fetchone()
 
-		elif len(reference_number) == 6:
-			#it might be a sales order, search for it in the DB
-			return cursor.execute("SELECT * FROM {} WHERE sales_order = \'{}\' OR quote = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number, reference_number)).fetchone()
+        elif len(reference_number) == 6:
+            #it might be a sales order, search for it in the DB
+            return cursor.execute("SELECT * FROM {} WHERE sales_order = \'{}\' OR quote = \'{}\' LAMIT 1".format(Ecrs.table_used, reference_number, reference_number)).fetchone()
 
-		elif '-' in reference_number:
-			#it might be a sales order with specified line up, search for it in the DB
-			sales_order = reference_number.split('-')[0]
-			line_up = 1
-			if reference_number.split('-')[1] != '':
-				line_up = int(float(reference_number.split('-')[1]))
-			return cursor.execute("SELECT * FROM {} WHERE sales_order = \'{}\' AND line_up = \'{}\' LAMIT 1".format(Ecrs.table_used, sales_order, line_up)).fetchone()
+        elif '-' in reference_number:
+            #it might be a sales order with specified line up, search for it in the DB
+            sales_order = reference_number.split('-')[0]
+            line_up = 1
+            if reference_number.split('-')[1] != '':
+                line_up = int(float(reference_number.split('-')[1]))
+            return cursor.execute("SELECT * FROM {} WHERE sales_order = \'{}\' AND line_up = \'{}\' LAMIT 1".format(Ecrs.table_used, sales_order, line_up)).fetchone()
 
-		else:
-			return None
-	except:
-		#for whatever reason, maybe bad ref#, couldn't get any data...
-		print sys.exc_info()
-		return None
+        else:
+            return None
+    except:
+        #for whatever reason, maybe bad ref#, couldn't get any data...
+        print sys.exc_info()
+        return None
 '''
 
 
@@ -143,10 +144,10 @@ def get_item_from_ref(reference_number):
             item_number = cursor.execute(
                 "SELECT TOP 1 * FROM {} WHERE sales_order LIKE '%{}%' AND line_up = \'{}\'".format(Ecrs.table_used,
                     sales_order, line_up)).fetchone()
-		
-		elif (len(reference_number) == 7) and (reference_number[0] == '8'):
+
+        elif (len(reference_number) == 7) and (reference_number[0] == '8'):
         # it might be an item number from cases starting with 8, search for it in the DB
-		    item_number = cursor.execute(
+            item_number = cursor.execute(
                 "SELECT TOP 1 * FROM {} WHERE item LIKE '%{}%'".format(Ecrs.table_used,reference_number)).fetchone()
 
         else:
