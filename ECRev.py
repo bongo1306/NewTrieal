@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '8.3'
+version = '8.4'
 
 # extend Python's functionality by importing modules
 import sys
@@ -664,6 +664,7 @@ class ECRevApp(wx.App):
     def init_ecrs_tab(self):
         cursor = Database.connection.cursor()
 
+
         self.main_frame.Bind(wx.EVT_BUTTON, open_folder, id=xrc.XRCID('button:open_folder'))
         self.main_frame.Bind(wx.EVT_BUTTON, open_bom, id=xrc.XRCID('button:open_bom'))
         self.main_frame.Bind(wx.EVT_BUTTON, open_piping, id=xrc.XRCID('button:open_piping'))
@@ -671,6 +672,16 @@ class ECRevApp(wx.App):
         self.main_frame.Bind(wx.EVT_BUTTON, open_dataplate, id=xrc.XRCID('button:open_dataplate'))
         self.main_frame.Bind(wx.EVT_BUTTON, open_workbook, id=xrc.XRCID('button:open_workbook'))
         self.main_frame.Bind(wx.EVT_BUTTON, open_legend, id=xrc.XRCID('button:open_legend'))
+
+        if Ecrs.Prod_Plant == "Cases":
+            ctrl(General.app.main_frame, 'button:open_folder').Hide()
+            ctrl(General.app.main_frame, 'button:open_bom').Hide()
+            ctrl(General.app.main_frame, 'button:open_piping').Hide()
+            ctrl(General.app.main_frame, 'button:open_wiring').Hide()
+            ctrl(General.app.main_frame, 'button:open_dataplate').Hide()
+            ctrl(General.app.main_frame, 'button:open_workbook').Hide()
+            ctrl(General.app.main_frame, 'button:open_legend').Hide()
+
         self.main_frame.Bind(wx.EVT_BUTTON, Ecrs.on_click_add_revisions_with_ecr,
                              id=xrc.XRCID('button:add_revisions_with_ecr'))
         self.main_frame.Bind(wx.EVT_BUTTON, Ecrs.on_click_open_new_ecr_form, id=xrc.XRCID('button:create_new_ecr'))

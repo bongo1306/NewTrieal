@@ -699,13 +699,14 @@ def on_click_close_ecr(event):
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(id)).fetchone()[0]
     new_reason_code = reason
     if previous_reason_code != new_reason_code:
-        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, new_code, Production_Plant) VALUES ("
+        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, Production_Plant, new_code) VALUES ("
         sql += "{}, ".format(id)
         sql += "'{}', ".format(General.app.current_user)
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
-        sql += "'{}')".format(new_reason_code)
         sql += '\'{}\', '.format(Prod_Plant)
+        sql += "'{}')".format(new_reason_code)
+        
         cursor.execute(sql)
 
     sql = 'UPDATE ecrs SET '
@@ -1049,7 +1050,7 @@ def on_click_submit_ecr(event):
     new_id = cursor.execute("SELECT MAX(id) FROM ecrs").fetchone()[0] + 1
 
     if item_number != None:
-        sql = 'INSERT INTO ecrs (id, status, reference_number, item, document, reason, department, who_requested, type, request, attachment, when_requested, when_needed, Production_Plant) VALUES ('
+        sql = 'INSERT INTO ecrs (id, status, reference_number, item, document, reason, department, who_requested, type, request, attachment, when_requested, Production_Plant, when_needed) VALUES ('
         sql += '{}, '.format(new_id)
         sql += '\'Open\', '
         sql += '\'{}\', '.format(reference_number)
@@ -1059,14 +1060,13 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(department)
         sql += '\'{}\', '.format(General.app.current_user)
         sql += '\'{}\', '.format(General.app.ecr_type)
-        sql += '\'{}\', '.format(
-            ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
-        sql += '\'{} 23:59:00\')'.format(need_by_date)
         sql += '\'{}\', '.format(Prod_Plant)
+        sql += '\'{} 23:59:00\')'.format(need_by_date)
     else:
-        sql = 'INSERT INTO ecrs (id, status, reference_number, document, reason, department, who_requested, type, request, attachment, when_requested, when_needed, Production_Plant) VALUES ('
+        sql = 'INSERT INTO ecrs (id, status, reference_number, document, reason, department, who_requested, type, request, attachment, when_requested, Production_Plant, when_needed) VALUES ('
         sql += '{}, '.format(new_id)
         sql += '\'Open\', '
         sql += '\'{}\', '.format(reference_number)
@@ -1079,8 +1079,8 @@ def on_click_submit_ecr(event):
             ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
-        sql += '\'{} 23:59:00\')'.format(need_by_date)
         sql += '\'{}\', '.format(Prod_Plant)
+        sql += '\'{} 23:59:00\')'.format(need_by_date)
 
     # print sql
     cursor.execute(sql)
@@ -1127,13 +1127,14 @@ def on_click_modify_ecr(event):
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(ecr_id)).fetchone()[0]
     new_reason_code = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
     if previous_reason_code != new_reason_code:
-        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, new_code, Production_Plant) VALUES ("
+        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, Production_Plant, new_code) VALUES ("
         sql += "{}, ".format(ecr_id)
         sql += "'{}', ".format(General.app.current_user)
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
-        sql += "'{}')".format(new_reason_code)
         sql += '\'{}\', '.format(Prod_Plant)
+        sql += "'{}')".format(new_reason_code)
+        
         cursor.execute(sql)
 
     reference_number = ctrl(General.app.modify_ecr_dialog, 'text:reference_number').GetValue().replace("'",

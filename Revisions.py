@@ -53,17 +53,17 @@ def on_click_document_tree(event):
     tree = event.GetEventObject()
     item, flags = tree.HitTest(pt)
     '''
-	if item:
-		if tree.GetItemText(item)[-1:] != ' ':
-			tree.Expand(item)
-		else:
-			if tree.GetItemText(item)[-2:] != '  ':
-				General.app.selected_revision_document = '{}>{}'.format(tree.GetItemText(tree.GetItemParent(item)).strip(), tree.GetItemText(item).strip())
-			else:
-				General.app.selected_revision_document = '{}'.format(tree.GetItemText(item).strip())
+    if item:
+        if tree.GetItemText(item)[-1:] != ' ':
+            tree.Expand(item)
+        else:
+            if tree.GetItemText(item)[-2:] != '  ':
+                General.app.selected_revision_document = '{}>{}'.format(tree.GetItemText(tree.GetItemParent(item)).strip(), tree.GetItemText(item).strip())
+            else:
+                General.app.selected_revision_document = '{}'.format(tree.GetItemText(item).strip())
 
-			General.app.revision_document_selection_dialog.Destroy()
-	'''
+            General.app.revision_document_selection_dialog.Destroy()
+    '''
 
     if item:
         if tree.GetItemText(item)[-1:] == ' ':
@@ -90,25 +90,25 @@ def on_click_document_tree(event):
 
 '''
 def on_click_select_revision_document(event):
-	button = event.GetEventObject()
-	new_label = General.app.init_revision_document_selection_dialog()
-	if new_label == None: new_label = 'Select'
-	
-	if new_label == 'BOM':
-		ctrl(General.app.new_revision_dialog, 'label:rec_dollars').Enable()
-		ctrl(General.app.new_revision_dialog, 'text:rec_dollars').Enable()
-	else:
-		ctrl(General.app.new_revision_dialog, 'label:rec_dollars').Disable()
-		ctrl(General.app.new_revision_dialog, 'text:rec_dollars').Disable()
-		ctrl(General.app.new_revision_dialog, 'text:rec_dollars').SetValue('')
-	
-	if new_label == 'Select':
-		ctrl(General.app.new_revision_dialog, 'button:submit_revision').Disable()
-	else:
-		ctrl(General.app.new_revision_dialog, 'button:submit_revision').Enable()
-	
-	button.SetLabel(str(new_label))
-	button.GetParent().GetSizer().Layout()
+    button = event.GetEventObject()
+    new_label = General.app.init_revision_document_selection_dialog()
+    if new_label == None: new_label = 'Select'
+    
+    if new_label == 'BOM':
+        ctrl(General.app.new_revision_dialog, 'label:rec_dollars').Enable()
+        ctrl(General.app.new_revision_dialog, 'text:rec_dollars').Enable()
+    else:
+        ctrl(General.app.new_revision_dialog, 'label:rec_dollars').Disable()
+        ctrl(General.app.new_revision_dialog, 'text:rec_dollars').Disable()
+        ctrl(General.app.new_revision_dialog, 'text:rec_dollars').SetValue('')
+    
+    if new_label == 'Select':
+        ctrl(General.app.new_revision_dialog, 'button:submit_revision').Disable()
+    else:
+        ctrl(General.app.new_revision_dialog, 'button:submit_revision').Enable()
+    
+    button.SetLabel(str(new_label))
+    button.GetParent().GetSizer().Layout()
 '''
 
 
@@ -131,8 +131,8 @@ def on_click_print_revisions(event):
         # <hr>
 
         html_to_print = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:8pt;}}</style>
-			<table border="1" cellspacing="0"><tr>
-			'''.format(item)
+            <table border="1" cellspacing="0"><tr>
+            '''.format(item)
 
         blacklisted_columns = ['dollars_reconciled', 'related_ecr']
 
@@ -248,7 +248,7 @@ def on_click_submit_revision(event):
                 if ctrl(General.app.new_revision_dialog, 'text:rec_dollars').GetValue() != '':
                     dollars_reconciled = ctrl(General.app.new_revision_dialog, 'text:rec_dollars').GetValue()
 
-            sql = 'INSERT INTO revisions (item, document, level, description, reason, who_revised, when_revised, dollars_reconciled, related_ecr, Production_Plant) VALUES ('
+            sql = 'INSERT INTO revisions (item, document, level, description, reason, who_revised, when_revised, dollars_reconciled, Production_Plant, related_ecr) VALUES ('
             sql += '\'{}\', '.format(item_entry)
             sql += '\'{}\', '.format(new_revision_record[0])
             sql += '{}, '.format(level)
@@ -258,8 +258,9 @@ def on_click_submit_revision(event):
             sql += '\'{}\', '.format(General.app.current_user)
             sql += '\'{}\', '.format(when_revised)
             sql += '{}, '.format(dollars_reconciled)
-            sql += '\'{}\')'.format(related_ecr)
             sql += '\'{}\', '.format(Ecrs.Prod_Plant)
+            sql += '\'{}\')'.format(related_ecr)
+            
 
             # print sql
             cursor.execute(sql)
@@ -513,15 +514,15 @@ def on_size_document_table(event):
 
 def send_revision_email(revision, order, email_list, sender):
     '''
-	threaded_connection = Database.connect_to_database()
-	cursor = threaded_connection.cursor()
-	
-	#cursor = Database.connection.cursor()
-	revision = cursor.execute('SELECT * FROM revisions WHERE id = \'{}\' LAMIT 1'.format(revision_id)).fetchone()
-	order = cursor.execute('SELECT * FROM {} WHERE item = \'{}\' LAMIT 1'.format(Ecrs.table_used, revision[1])).fetchone()
-	email_list = cursor.execute('SELECT email FROM employees WHERE gets_revision_notice = \'yes\''.format(revision[1])).fetchall()
-	sender = cursor.execute('SELECT email FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
-	'''
+    threaded_connection = Database.connect_to_database()
+    cursor = threaded_connection.cursor()
+
+    #cursor = Database.connection.cursor()
+    revision = cursor.execute('SELECT * FROM revisions WHERE id = \'{}\' LAMIT 1'.format(revision_id)).fetchone()
+    order = cursor.execute('SELECT * FROM {} WHERE item = \'{}\' LAMIT 1'.format(Ecrs.table_used, revision[1])).fetchone()
+    email_list = cursor.execute('SELECT email FROM employees WHERE gets_revision_notice = \'yes\''.format(revision[1])).fetchall()
+    sender = cursor.execute('SELECT email FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
+    '''
 
     server = smtplib.SMTP('mailrelay.lennoxintl.com')
     email_string = ''
@@ -577,28 +578,28 @@ def send_revision_email(revision, order, email_list, sender):
 
     # size="3"
     body_html = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>
-		<font face=\"arial\">
-		{}
-		<hr>
-		<table border="0">
-		<tr><td align=\"right\">Item&nbsp;Number:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Sales&nbsp;Order:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Customer:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Location:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Model:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Target&nbsp;Date:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Produced&nbsp;Date:&nbsp;</td><td>{}</td></tr>
-		</table>
-		<hr>
-		<table border="0">
-		<tr><td align=\"right\">Revision&nbsp;ID:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Related&nbsp;ECR:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Reason:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Document:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Revision&nbsp;Level:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\" valign=\"top\">Description:&nbsp;</td><td>{}</td></tr>
-		</table>
-		'''.format(shortcuts, item_number, sales_order, customer, location, model, target_date, produced_date,
+        <font face=\"arial\">
+        {}
+        <hr>
+        <table border="0">
+        <tr><td align=\"right\">Item&nbsp;Number:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Sales&nbsp;Order:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Customer:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Location:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Model:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Target&nbsp;Date:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Produced&nbsp;Date:&nbsp;</td><td>{}</td></tr>
+        </table>
+        <hr>
+        <table border="0">
+        <tr><td align=\"right\">Revision&nbsp;ID:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Related&nbsp;ECR:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Reason:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Document:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Revision&nbsp;Level:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\" valign=\"top\">Description:&nbsp;</td><td>{}</td></tr>
+        </table>
+        '''.format(shortcuts, item_number, sales_order, customer, location, model, target_date, produced_date,
                    revision_id, related_ecr, reason, document, level, description)
 
     body = MIMEMultipart('alternative')
@@ -617,34 +618,34 @@ def send_revision_email(revision, order, email_list, sender):
 
 '''
 def check_for_BOM_net_change(item):
-	print 'checking for BOM net change report'
-	path_to_check = 'S:\Engineering\BOM_Uploads'
-	
-	new_net_change_found = False
-	for file_found in glob.iglob(os.path.join(path_to_check, '*{}*'.format(item))):
-		when_modified = dt.datetime.fromtimestamp(os.path.getmtime(file_found))
-		date_modified = when_modified.date()
-		print '{}	{}'.format(when_modified, file_found)
-		
-		if date_modified == dt.date.today():
-			new_net_change_found = True
-			
-	if new_net_change_found == False:
-		wx.MessageBox('A BOM net change report was NOT found in {}\nfor item number {} today.\n\nMake sure that the BOM was uploaded correctly.'.format(path_to_check, item), 'Warning!', wx.OK | wx.ICON_WARNING)
+    print 'checking for BOM net change report'
+    path_to_check = 'S:\Engineering\BOM_Uploads'
+    
+    new_net_change_found = False
+    for file_found in glob.iglob(os.path.join(path_to_check, '*{}*'.format(item))):
+        when_modified = dt.datetime.fromtimestamp(os.path.getmtime(file_found))
+        date_modified = when_modified.date()
+        print '{}	{}'.format(when_modified, file_found)
+        
+        if date_modified == dt.date.today():
+            new_net_change_found = True
+            
+    if new_net_change_found == False:
+        wx.MessageBox('A BOM net change report was NOT found in {}\nfor item number {} today.\n\nMake sure that the BOM was uploaded correctly.'.format(path_to_check, item), 'Warning!', wx.OK | wx.ICON_WARNING)
 '''
 
 
 def send_popsheet_email(revision, order, email_list, sender):
     '''
-	threaded_connection = Database.connect_to_database()
-	cursor = threaded_connection.cursor()
-	
-	#cursor = Database.connection.cursor()
-	revision = cursor.execute('SELECT * FROM revisions WHERE id = \'{}\' LAMIT 1'.format(revision_id)).fetchone()
-	order = cursor.execute('SELECT * FROM {} WHERE item = \'{}\' LAMIT 1'.format(Ecrs.table_used, revision[1])).fetchone()
-	email_list = cursor.execute('SELECT email FROM employees WHERE gets_revision_notice = \'yes\''.format(revision[1])).fetchall()
-	sender = cursor.execute('SELECT email FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
-	'''
+    threaded_connection = Database.connect_to_database()
+    cursor = threaded_connection.cursor()
+
+    #cursor = Database.connection.cursor()
+    revision = cursor.execute('SELECT * FROM revisions WHERE id = \'{}\' LAMIT 1'.format(revision_id)).fetchone()
+    order = cursor.execute('SELECT * FROM {} WHERE item = \'{}\' LAMIT 1'.format(Ecrs.table_used, revision[1])).fetchone()
+    email_list = cursor.execute('SELECT email FROM employees WHERE gets_revision_notice = \'yes\''.format(revision[1])).fetchall()
+    sender = cursor.execute('SELECT email FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
+    '''
 
     server = smtplib.SMTP('mailrelay.lennoxintl.com')
     email_string = ''
@@ -699,28 +700,28 @@ def send_popsheet_email(revision, order, email_list, sender):
 
     # size="3"
     body_html = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>
-		<font face=\"arial\">
-		{}
-		<hr>
-		<table border="0">
-		<tr><td align=\"right\">Item&nbsp;Number:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Sales&nbsp;Order:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Customer:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Location:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Model:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Target&nbsp;Date:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Produced&nbsp;Date:&nbsp;</td><td>{}</td></tr>
-		</table>
-		<hr>
-		<table border="0">
-		<tr><td align=\"right\">Revision&nbsp;ID:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Related&nbsp;ECR:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Reason:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Document:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\">Revision&nbsp;Level:&nbsp;</td><td>{}</td></tr>
-		<tr><td align=\"right\" valign=\"top\">Description:&nbsp;</td><td>{}</td></tr>
-		</table>
-		'''.format(shortcuts, item_number, sales_order, customer, location, model, target_date, produced_date,
+        <font face=\"arial\">
+        {}
+        <hr>
+        <table border="0">
+        <tr><td align=\"right\">Item&nbsp;Number:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Sales&nbsp;Order:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Customer:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Location:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Model:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Target&nbsp;Date:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Produced&nbsp;Date:&nbsp;</td><td>{}</td></tr>
+        </table>
+        <hr>
+        <table border="0">
+        <tr><td align=\"right\">Revision&nbsp;ID:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Related&nbsp;ECR:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Reason:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Document:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Revision&nbsp;Level:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\" valign=\"top\">Description:&nbsp;</td><td>{}</td></tr>
+        </table>
+        '''.format(shortcuts, item_number, sales_order, customer, location, model, target_date, produced_date,
                    revision_id, related_ecr, reason, document, level, description)
 
     body = MIMEMultipart('alternative')
