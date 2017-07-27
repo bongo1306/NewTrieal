@@ -931,8 +931,8 @@ class ECRevApp(wx.App):
             ctrl(self.new_ecr_dialog, 'text:description').SetValue(ecr[4])
 
             # refigure the need by date
-            cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\'".format(ecr[2]))
-            lead_time_date = dt.datetime.today() + dt.timedelta(cursor.fetchone()[0])
+            #cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\'".format(ecr[2]))
+            lead_time_date = dt.datetime.today() + dt.timedelta(cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\'".format(ecr[2])).fetchone()[0])
             ctrl(self.new_ecr_dialog, 'calendar:ecr_need_by').SetDate(
                 wx.DateTimeFromDMY(lead_time_date.day, lead_time_date.month - 1, lead_time_date.year))
 

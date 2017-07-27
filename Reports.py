@@ -544,7 +544,7 @@ class EcrsByProductFamily(PlotPanel):
 					family, 
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 					#cursor.execute('SELECT when_closed FROM ecrs WHERE document=\'{}\' AND when_closed>\'{}\' AND when_closed<\'{}\' AND (resolution LIKE \'%picklist%\' OR resolution LIKE \'%pick list%\' OR request LIKE \'%picklist%\' OR request LIKE \'%pick list%\') ORDER BY when_closed ASC'.format(document, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
-					cursor.execute('SELECT ecrs.when_closed FROM ecrs INNER JOIN orders ON ecrs.item = orders.item WHERE orders.family=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(family, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
+					cursor.execute('SELECT ecrs.when_closed FROM ecrs INNER JOIN {} ON ecrs.item = {}.item WHERE {}.family=\'{}\' AND ecrs.when_closed>\'{}\' AND ecrs.when_closed<\'{}\' ORDER BY ecrs.when_closed ASC'.format(Ecrs.table_used, Ecrs.table_used, Ecrs.table_used, family, self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall())
 				)
 
 		#initiate plotter
