@@ -1470,8 +1470,9 @@ def on_click_login(event):
         Ecrs.table_used = 'orders'
         Ecrs.Prod_Plant = 'Systems'
     else:
-        Ecrs.table_used = ''
-        Ecrs.Prod_Plant = 'NULL'
+        wx.MessageBox("You must select a plant.", 'Login failed')
+        #Ecrs.table_used = ''
+        #Ecrs.Prod_Plant = 'NULL'
 
 
 
