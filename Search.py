@@ -3,6 +3,7 @@ from wx.html import HtmlEasyPrinting
 from wx import xrc  # allows the loading and access of xrc file (xml) that describes GUI
 import wx.grid as gridlib
 from wxPython.calendar import *
+from win32com.client import Dispatch
 
 ctrl = xrc.XRCCTRL  # define a shortined function name (just for convienience)
 
@@ -20,7 +21,52 @@ import Ecrs
 
 
 def export_search_results(event):
-    # prompt user to choose where to save
+    
+    excel = Dispatch('Excel.Application')
+    excel.Visible = True
+    wb = excel.Workbooks.Add()
+    #worksheet = wb.add_sheet('Search Results')
+
+    #wb.ActiveSheet.Cells(1, 1).Value = 'Transferring data to Excel...'
+    #wb.ActiveSheet.Columns(1).AutoFit()
+
+    results_list = ctrl(General.app.main_frame, 'list:search_results')
+    # current_item = results_list.GetTopItem()
+    
+    R = results_list.GetItemCount()
+    print R
+    C = results_list.GetColumnCount()
+    print C
+
+    def write_headers(results_list):
+        headers = []
+        for col in range(results_list.GetColumnCount()):
+            headers.append(results_list.GetColumn(col).GetText())
+        return headers
+
+    def write_rows(results_list):
+        data_all = []
+        for row in range(results_list.GetItemCount()):
+            data_row = []
+            for col in range(results_list.GetColumnCount()):
+                data_row.append(results_list.GetItem(row, col).GetText())
+            data_all.append(data_row)
+        return data_all
+
+    #Write the header
+    excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(1, 1),wb.ActiveSheet.Cells(1,C))
+    excel_range.Value = write_headers(results_list)
+                
+    #specify the excel range that the main data covers
+    excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(2, 1), wb.ActiveSheet.Cells(R+1,C))
+    excel_range.Value = write_rows(results_list)
+
+    #Autofit the columns
+    excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(1, 1),wb.ActiveSheet.Cells(R+1,C))
+    excel_range.Columns.AutoFit()
+
+"""                
+# prompt user to choose where to save
     save_dialog = wx.FileDialog(General.app.main_frame, message="Export file as ...",
                                 defaultDir=os.path.join(os.path.expanduser("~"), "Desktop"),
                                 defaultFile="search_results", wildcard="Excel Spreadsheet (*.xls)|*.xls",
@@ -59,6 +105,7 @@ def export_search_results(event):
         wx.MessageBox('Export failed!\n\nYou may have exceeded the row limit of an xls file.\n{}'.format(e), 'Error',
                       wx.OK | wx.ICON_ERROR)
 
+"""
 
 def destroy_dialog(event, dialog):
     dialog.Destroy()
@@ -125,17 +172,17 @@ def on_click_begin_search(event):
 
             for column_index, column_value in enumerate(record):
                 '''
-				if column_names[column_index] == 'When Requested':
-					column_value = General.format_date_nicely(column_value)
-				if column_names[column_index] == 'When Needed':
-					column_value = General.format_date_nicely(column_value)
-				if column_names[column_index] == 'When Closed':
-					column_value = General.format_date_nicely(column_value)
-				if column_names[column_index] == 'When Modified':
-					column_value = General.format_date_nicely(column_value)
-				if column_names[column_index] == 'When Claimed':
-					column_value = General.format_date_nicely(column_value)
-				'''
+                if column_names[column_index] == 'When Requested':
+                    column_value = General.format_date_nicely(column_value)
+                if column_names[column_index] == 'When Needed':
+                    column_value = General.format_date_nicely(column_value)
+                if column_names[column_index] == 'When Closed':
+                    column_value = General.format_date_nicely(column_value)
+                if column_names[column_index] == 'When Modified':
+                    column_value = General.format_date_nicely(column_value)
+                if column_names[column_index] == 'When Claimed':
+                    column_value = General.format_date_nicely(column_value)
+                '''
                 if column_value != None:
                     results_list.SetStringItem(index, column_index, str(column_value).replace('\n', ' \\ '))
 

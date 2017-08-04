@@ -1221,7 +1221,7 @@ class ECRevApp(wx.App):
         ###self.main_frame.Bind(wx.EVT_LIST_COL_CLICK, sort_list, id=xrc.XRCID('list:search_results'))
         self.main_frame.Bind(wx.EVT_BUTTON, Search.on_click_open_how_to_search, id=xrc.XRCID('button:how_to_search'))
         ###self.main_frame.Bind(wx.EVT_BUTTON, Search.export_search_results, id=xrc.XRCID('button:export_search_results'))
-        self.main_frame.Bind(wx.EVT_BUTTON, ctrl(self.main_frame, 'list:search_results').export_list,
+        self.main_frame.Bind(wx.EVT_BUTTON, Search.export_search_results,
                              id=xrc.XRCID('button:export_search_results'))
         self.main_frame.Bind(wx.EVT_BUTTON, ctrl(self.main_frame, 'list:search_results').print_list,
                              id=xrc.XRCID('button:print_search_results'))
