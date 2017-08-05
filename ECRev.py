@@ -461,7 +461,7 @@ class ECRevApp(wx.App):
              'Approved', 'Prototype Stage'])
 
         # add document options to choice box
-        cursor.execute("SELECT document FROM ecr_document_choices")
+        cursor.execute("SELECT document FROM ecr_document_choices where Production_Plant = \'{}\'".format(Ecrs.Prod_Plant))
         ctrl(self.close_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
 
         ##self.ecr_type = 'Mechanical'
@@ -550,7 +550,7 @@ class ECRevApp(wx.App):
 
         # support old ECR reason codes if ECR originally submitted under them
         if reason not in reasons:
-            cursor.execute("SELECT reason FROM ecr_reason_choices ORDER BY reason ASC")
+            cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(Ecrs.Prod_Plant))
             ctrl(self.close_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
 
         # uncheck send similar notices if it's a BOM Rec
@@ -865,29 +865,36 @@ class ECRevApp(wx.App):
 
         cursor = Database.connection.cursor()
 
+        if Ecrs.Prod_Plant == 'Systems':
+
         # add reason for request options to choice box
         ##reasons = zip(*cursor.execute("SELECT reason FROM ecr_reason_choices ORDER BY reason ASC").fetchall())[0]
-        reasons = zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[0]
-        user_department = cursor.execute(
-            'SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+            reasons = zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[0]
+            user_department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
         ##reasons_white_list = cursor.execute('SELECT TOP 1 can_choose_which_ecr_reasons FROM departments WHERE department = \'{}\''.format(user_department)).fetchone()[0]
         ##reasons_white_list = reasons_white_list.split('|')
-        reasons_white_list = zip(*cursor.execute(
-            "SELECT code FROM departments_ecr_reason_codes WHERE department = '{}'".format(
-                user_department)).fetchall())[0]
+            reasons_white_list = zip(*cursor.execute("SELECT code FROM departments_ecr_reason_codes WHERE department = '{}'".format(user_department)).fetchall())[0]
 
-        for reason in reasons:
-            if (reason in reasons_white_list):
-                ctrl(self.new_ecr_dialog, 'choice:ecr_reason').AppendItems((reason,))
+            for reason in reasons:
+                if (reason in reasons_white_list):
+                    ctrl(self.new_ecr_dialog, 'choice:ecr_reason').AppendItems((reason,))
 
         # ctrl(self.new_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
+        else:
+            reasons = zip(*cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0]
+            ctrl(self.new_ecr_dialog, 'choice:ecr_reason').AppendItems((reasons))
 
         # add document options to choice box
-        if duplicate_ecr_id == None:
-            cursor.execute("SELECT document FROM ecr_document_choices WHERE type=\'Mechanical\' OR type=\'*\'")
+        if Ecrs.Prod_Plant == 'Systems':
+            if duplicate_ecr_id == None:
+                cursor.execute("SELECT document FROM ecr_document_choices WHERE type=\'Mechanical\' OR type=\'*\' AND Production_Plant = \'{}\'".format(Ecrs.Prod_Plant))
+            else:
+                cursor.execute("SELECT document FROM ecr_document_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant))
+            ctrl(self.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
         else:
-            cursor.execute("SELECT document FROM ecr_document_choices")
-        ctrl(self.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
+            cursor.execute("SELECT document FROM ecr_document_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant))
+            ctrl(self.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
+
 
         self.ecr_type = 'Mechanical'
 
@@ -932,7 +939,7 @@ class ECRevApp(wx.App):
 
             # refigure the need by date
             #cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\'".format(ecr[2]))
-            lead_time_date = dt.datetime.today() + dt.timedelta(cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\'".format(ecr[2])).fetchone()[0])
+            lead_time_date = dt.datetime.today() + dt.timedelta(cursor.execute("SELECT lead_time FROM ecr_reason_choices WHERE reason=\'{}\' AND Production_Plant = \'{}\'".format(ecr[2],Ecrs.Prod_Plant)).fetchone()[0])
             ctrl(self.new_ecr_dialog, 'calendar:ecr_need_by').SetDate(
                 wx.DateTimeFromDMY(lead_time_date.day, lead_time_date.month - 1, lead_time_date.year))
 
@@ -979,7 +986,7 @@ class ECRevApp(wx.App):
              'Approved', 'Prototype Stage'])
 
         # add document options to choice box
-        cursor.execute("SELECT document FROM ecr_document_choices")
+        cursor.execute("SELECT document FROM ecr_document_choices where Production_Plant = \'{}\'".format(Ecrs.Prod_Plant))
         ctrl(self.modify_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
 
         ##self.ecr_type = 'Mechanical'
@@ -1061,16 +1068,19 @@ class ECRevApp(wx.App):
         # add reason for request options to choice box
         ##cursor.execute("SELECT reason FROM ecr_reason_choices ORDER BY reason ASC")
         ##ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
-        reasons = list(
-            zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[0])
+        if Ecrs.Prod_Plant == 'Systems':
+            reasons = list(
+                zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[0])
 
-        ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').AppendItems(reasons)
+            ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').AppendItems(reasons)
 
         # support old ECR reason codes if ECR originally submitted under them
-        if reason not in reasons:
-            cursor.execute("SELECT reason FROM ecr_reason_choices ORDER BY reason ASC")
+            if reason not in reasons:
+                cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(Ecrs.Prod_Plant))
+                ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
+        else:
+            reasons = cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(Ecrs.Prod_Plant))
             ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
-
         # hide committee panel if not the right type of ECR reason
         if reason not in Ecrs.reasons_needing_approval:
             ctrl(self.modify_ecr_dialog, 'panel:committee').Hide()
@@ -1281,9 +1291,9 @@ class ECRevApp(wx.App):
 
             # populate some search field choices
             ctrl(self.search_ecrs_dialog, 'combo:search_value3').AppendItems(
-                zip(*cursor.execute("SELECT document FROM ecr_document_choices").fetchall())[0])
+                zip(*cursor.execute("SELECT document FROM ecr_document_choices where Production_Plant = \'{}\'".format(Ecrs.Prod_Plant)).fetchall())[0])
             ctrl(self.search_ecrs_dialog, 'combo:search_value4').AppendItems(
-                zip(*cursor.execute("SELECT reason FROM ecr_reason_choices").fetchall())[0])
+                zip(*cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
             ctrl(self.search_ecrs_dialog, 'combo:search_value5').AppendItems(
                 zip(*cursor.execute("SELECT department FROM departments").fetchall())[0])
             ctrl(self.search_ecrs_dialog, 'combo:search_value6').AppendItems(

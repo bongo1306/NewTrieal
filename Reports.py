@@ -254,7 +254,7 @@ class EcrReasons(PlotPanel):
         self.end_date = end_date
 
         cursor = Database.connection.cursor()
-        ecr_reasons = list(zip(*cursor.execute('SELECT reason FROM ecr_reason_choices').fetchall())[0])
+        ecr_reasons = list(zip(*cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
 
         self.reason_data = []
         for reason_index, reason in enumerate(ecr_reasons):
@@ -343,7 +343,7 @@ class EcrDocuments(PlotPanel):
 
         cursor = Database.connection.cursor()
 
-        ecr_documents = list(zip(*cursor.execute('SELECT document FROM ecr_document_choices').fetchall())[0])
+        ecr_documents = list(zip(*cursor.execute('SELECT document FROM ecr_document_choices where Production_Plant = \'{}\''.format(Ecrs.Prod_Plant)).fetchall())[0])
 
         self.document_data = []
         for document_index, document in enumerate(ecr_documents):

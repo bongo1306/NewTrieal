@@ -1536,9 +1536,14 @@ def radio_button_selected(event, type):
     if General.app.new_ecr_dialog:
         # add document options to choice box based on ecr type selected
         cursor = Database.connection.cursor()
-        cursor.execute("SELECT document FROM ecr_document_choices WHERE type=\'{}\' OR type=\'*\'".format(type))
-        ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
-        ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
+        if Prod_Plant == 'Systems':
+            cursor.execute("SELECT document FROM ecr_document_choices WHERE ((type=\'{}\' OR type=\'*\') AND Production_Plant = \'{}\' )".format(type,Prod_Plant))
+            ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
+            ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
+        else:
+            cursor.execute("SELECT document FROM ecr_document_choices WHERE Production_Plant = \'{}\' ".format(Prod_Plant))
+            ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
+            ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
     General.app.ecr_type = type
     # print 'good!'
 
@@ -2842,13 +2847,13 @@ def update_useful_info_panel(query_result):
                 ctrl(General.app.new_ecr_dialog, 'label:date_produced').SetLabel(
                     General.format_date_nicely(str(query_result[19]))[:8])
             except:
-                ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel('NA')
+                ctrl(General.app.new_ecr_dialog, 'label:date_produced').SetLabel('NA')
 
             try:
                 ctrl(General.app.new_ecr_dialog, 'label:date_shipped').SetLabel(
                     General.format_date_nicely(str(query_result[20]))[:8])
             except:
-                ctrl(General.app.new_ecr_dialog, 'label:date_released').SetLabel('NA')
+                ctrl(General.app.new_ecr_dialog, 'label:date_shipped').SetLabel('NA')
 
     else:
         print 'validation failed :('
