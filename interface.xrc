@@ -2023,7 +2023,7 @@
 						<flag>wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM|wxRIGHT</flag>
 						<border>5</border>
 						<object class="wxChoice" name="choice:revision_reasons">
-							<size>150,-1</size>
+							<size>250,-1</size>
 							<selection>-1</selection>
 							<content />
 						</object>
