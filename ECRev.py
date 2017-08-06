@@ -500,32 +500,54 @@ class ECRevApp(wx.App):
         reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity = ecr
 
         # add component options
-        if type == 'Other':
-            components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components").fetchall())[0])
-        else:
-            components = list(zip(*cursor.execute(
-                "SELECT DISTINCT component FROM ecr.components WHERE discipline='{}'".format(type)).fetchall())[0])
+        if Ecrs.Prod_Plant == 'Systems':
+            if type == 'Other':
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components").fetchall())[0])
+            else:
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE discipline='{}'".format(type)).fetchall())[0])
 
-        components.insert(0, '')
-        ctrl(self.close_ecr_dialog, 'choice:ecr_component').AppendItems(components)
+            components.insert(0, '')
+            ctrl(self.close_ecr_dialog, 'choice:ecr_component').AppendItems(components)
 
-        if component:
-            ctrl(self.close_ecr_dialog, 'choice:ecr_component').Insert(component, 1)
-            ctrl(self.close_ecr_dialog, 'choice:ecr_component').SetStringSelection(component)
+            if component:
+                ctrl(self.close_ecr_dialog, 'choice:ecr_component').Insert(component, 1)
+                ctrl(self.close_ecr_dialog, 'choice:ecr_component').SetStringSelection(component)
 
         # add sub_system options
-        if type == 'Other':
-            sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems").fetchall())[0])
+            if type == 'Other':
+                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems").fetchall())[0])
+            else:
+                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE discipline='{}'".format(type)).fetchall())[0])
+
+            sub_systems.insert(0, '')
+            ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_systems)
+
+            if sub_system:
+                ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
+                ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
         else:
-            sub_systems = list(zip(*cursor.execute(
-                "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE discipline='{}'".format(type)).fetchall())[0])
+            components_list_cases = ['Air block', 'Air Deflector', 'Base', 'Brackets', 'Breaker', 'Bumper/retainer',
+                                     'Coil',
+                                     'Controller', 'Deck pans', 'Door/frame', 'End Assy', 'Fan', 'Glass', 'Horse Head',
+                                     'Kick plates', 'Lights', 'Other', 'Painted part', 'Piping', 'Pnl, Foam, Back',
+                                     'Pnl, Foam, Cnpy', 'Pnl, Foam, Front', 'PVC', 'Raceway', ' Rack', 'Sensor, Temp',
+                                     'Sensor, Pressure', 'Shelf standard', 'Shelves', 'Skin', 'Tub, foam', 'Valve',
+                                     'Wire racks']
+            sub_system_list_cases = ['Base', 'Coil Piping', 'Controls', 'Doors/frames', 'End', 'Foam', 'Kitting',
+                                     'Knock up',
+                                     'Lighting', 'Paint', 'Piping', 'Piping Option Pack', 'QA', 'Raceway',
+                                     'Sheet Metal',
+                                     'Subassy', 'Trimming', 'Wiring']
 
-        sub_systems.insert(0, '')
-        ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_systems)
+            # components_list_cases.insert(0, '')
+            ctrl(self.close_ecr_dialog, 'choice:ecr_component').AppendItems(components_list_cases)
+            # ctrl(self.modify_ecr_dialog, 'choice:ecr_component').Insert(components_list_cases, 1)
+            # ctrl(self.modify_ecr_dialog, 'choice:ecr_component').SetStringSelection(components_list_cases)
 
-        if sub_system:
-            ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
-            ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
+            # sub_system_list_cases.insert(0, '')
+            ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_system_list_cases)
+            # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system_list_cases, 1)
+            # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system_list_cases)
 
         # add severity options
         ctrl(self.close_ecr_dialog, 'choice:ecr_severity').AppendItems(['High', 'Medium', 'Low'])
@@ -544,21 +566,23 @@ class ECRevApp(wx.App):
         # add reason for request options to choice box
         ##cursor.execute("SELECT reason FROM ecr_reason_choices ORDER BY reason ASC")
         ##ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
-        reasons = list(
-            zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[0])
+        if Ecrs.Prod_Plant == 'Systems':
+            reasons = list(zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[0])
 
-        ctrl(self.close_ecr_dialog, 'choice:ecr_reason').AppendItems(reasons)
+            ctrl(self.close_ecr_dialog, 'choice:ecr_reason').AppendItems(reasons)
 
         # support old ECR reason codes if ECR originally submitted under them
-        if reason not in reasons:
-            cursor.execute(
-                "SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(
-                    Ecrs.Prod_Plant))
-            ctrl(self.close_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
+            if reason not in reasons:
+                cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(Ecrs.Prod_Plant))
+                ctrl(self.close_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
 
         # uncheck send similar notices if it's a BOM Rec
-        if reason == 'BOM Reconciliation':
-            ctrl(self.close_ecr_dialog, 'checkbox:similar_ecrs').SetValue(False)
+            if reason == 'BOM Reconciliation':
+                ctrl(self.close_ecr_dialog, 'checkbox:similar_ecrs').SetValue(False)
+        else:
+            reasons = zip(*cursor.execute(
+                "SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0]
+            ctrl(self.close_ecr_dialog, 'choice:ecr_reason').AppendItems((reasons))
 
         # no actually, uncheck send similar notices by default until this SAP transition mess is over
         ctrl(self.close_ecr_dialog, 'checkbox:similar_ecrs').SetValue(False)
