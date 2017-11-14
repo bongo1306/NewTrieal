@@ -2,7 +2,7 @@ import wx  # wxWidgets used as the GUI
 from wx.html import HtmlEasyPrinting
 from wx import xrc  # allows the loading and access of xrc file (xml) that describes GUI
 import wx.grid as gridlib
-from wxPython.calendar import *
+from wx.calendar import *
 from win32com.client import Dispatch
 
 ctrl = xrc.XRCCTRL  # define a shortined function name (just for convienience)

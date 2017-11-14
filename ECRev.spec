@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 
 
-app_directory = 'S:\\Everyone\\Management Software\\ECRev\\development'
+app_directory = 'C:\Users\sdb25\Desktop\Mydocs\New Trieal'
 
 import sys
 

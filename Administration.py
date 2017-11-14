@@ -5,7 +5,7 @@ import wx		#wxWidgets used as the GUI
 from wx.html import HtmlEasyPrinting
 from wx import xrc		#allows the loading and access of xrc file (xml) that describes GUI
 import wx.grid as gridlib
-from wxPython.calendar import *
+from wx.calendar import *
 ctrl = xrc.XRCCTRL		#define a shortined function name (just for convienience)
 
 import pyodbc #for connecting to dbworks database
@@ -18,13 +18,13 @@ import datetime
 
 import Database
 import General
-
+import Ecrs
 
 def on_select_admin(event):
 	name = event.GetEventObject().GetStringSelection()
 	
 	cursor = Database.connection.cursor()
-	cursor.execute("UPDATE administration SET ecr_admin_name = '{}'".format(name.replace("'", "''")))
+	cursor.execute("UPDATE administration SET ecr_admin_name = '{}' where Production_Plant = \'{}\' ".format(name.replace("'", "''"),Ecrs.Prod_Plant))
 	Database.connection.commit()
 	
 	#reset status bar to reflect newly assigned admin

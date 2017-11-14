@@ -14,7 +14,7 @@ import General
 
 import wx
 import Ecrs
-
+import os
 
 def connect_to_database():
     # global cursor

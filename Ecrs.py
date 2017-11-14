@@ -4,7 +4,7 @@ import wx  # wxWidgets used as the GUI
 from wx.html import HtmlEasyPrinting
 from wx import xrc  # allows the loading and access of xrc file (xml) that describes GUI
 import wx.grid as gridlib
-from wxPython.calendar import *
+from wx.calendar import *
 
 ctrl = xrc.XRCCTRL  # define a shortined function name (just for convienience)
 
@@ -41,7 +41,7 @@ import ECRev
 # reasons_needing_approval = ['Part Substitution', 'Customer Change', 'Agency Approval', 'Platform Change', 'Continuing Improvement', 'Spec Alignment']
 
 reasons_needing_approval = [
-    "Customer Change",
+    "Customer Change", "Customer Change Requests",
 ]
 
 

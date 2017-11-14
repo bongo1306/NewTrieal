@@ -1,4 +1,5 @@
 import wx
+import wx.grid
 
 class TweakedGrid(wx.grid.Grid):
 	""" A Copy&Paste enabled grid class"""

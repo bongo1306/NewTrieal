@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '8.4'
+version = '8.5'
 
 # extend Python's functionality by importing modules
 import sys
@@ -13,7 +13,7 @@ import wx
 from wx import xrc  # allows the loading and access of xrc file (xml) that describes GUI
 import wx.grid as gridlib  # an excel like table widget
 import wx.lib.scrolledpanel as scrolled  # for the scrollable search panel
-from wxPython.calendar import *
+from wx.calendar import *
 
 ctrl = xrc.XRCCTRL  # define a shortined function name (just for convienience)
 
@@ -251,6 +251,7 @@ class ECRevApp(wx.App):
         self.login_frame.Bind(wx.EVT_CLOSE, self.quit_app)
         self.login_frame.Bind(wx.EVT_BUTTON, on_click_login, id=xrc.XRCID('button:log_in'))
         self.login_frame.Bind(wx.EVT_CHOICE, on_click_login, id=xrc.XRCID('choice:Plant'))
+        #self.login_frame.Bind(wx.EVT_CHECKBOX, on_click_login, id=xrc.XRCID('m_checkBoxRemPass'))
 
         ###set temp defaults
         # ctrl(self.login_frame, 'choice:name').SetStringSelection(str('Stuart, Travis'))
@@ -262,12 +263,27 @@ class ECRevApp(wx.App):
 
         # default the login name to the last entered name
         login_name = ''
+        remember_password = False
+        password = ''
+        plant = ''
         config = ConfigParser.ConfigParser()
+        config.read('ECRev.cfg')
         if config.read('ECRev.cfg'):
             login_name = config.get('Application', 'login_name')
+            remember_password = config.get('Application', 'remember_password')
+            password = config.get('Application', 'password')
+            plant = config.get('Application', 'plant')
+            print remember_password
+            print password
 
         if login_name != '':
             ctrl(self.login_frame, 'choice:name').SetStringSelection(login_name)
+
+        if remember_password == 'True':
+            ctrl(self.login_frame, 'm_checkBoxRemPass').SetValue(True)
+            ctrl(self.login_frame, 'text:password').SetValue(password)
+            ctrl(self.login_frame, 'choice:plant').SetStringSelection(plant)
+
 
         # put focus on password box
         ctrl(self.login_frame, 'text:password').SetFocus()
@@ -313,7 +329,7 @@ class ECRevApp(wx.App):
         # set window's title with user's name reordered as first then last name
         reordered_name = self.current_user.replace(' ', '')  # remove any spaces
         reordered_name = reordered_name.split(',')[1] + ' ' + reordered_name.split(',')[0]
-        self.main_frame.SetTitle('ECRev v{} - Logged in as {}'.format(version, reordered_name))
+        self.main_frame.SetTitle('ECRev v{} - Logged in as {} in {} Plant'.format(version, reordered_name, Ecrs.Prod_Plant))
 
         # initially populate some common lists
         Ecrs.refresh_my_ecrs_list(limit=15)
@@ -399,7 +415,7 @@ class ECRevApp(wx.App):
             removed_count += 1
 
         # say who the admin is in status bar
-        admin_name = cursor.execute("SELECT ecr_admin_name FROM administration").fetchone()[0]
+        admin_name = cursor.execute("SELECT ecr_admin_name FROM administration WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchone()[0]
         ctrl(self.main_frame, 'statusbar:main').SetStatusText('ECR administrator: {}'.format(admin_name))
 
         # show export for committee button if authorized
@@ -594,7 +610,7 @@ class ECRevApp(wx.App):
 
         # hide committee panel if not the right type of ECR reason
         if reason not in Ecrs.reasons_needing_approval:
-            ctrl(self.close_ecr_dialog, 'panel:committee').Hide()
+           ctrl(self.close_ecr_dialog, 'panel:committee').Hide()
         try:
             ctrl(self.close_ecr_dialog, 'choice:stage').SetStringSelection(approval_stage)
         except Exception as e:
@@ -830,7 +846,7 @@ class ECRevApp(wx.App):
         cursor = Database.connection.cursor()
 
         # get ecr admin
-        admin_name = cursor.execute("SELECT ecr_admin_name FROM administration").fetchone()[0]
+        admin_name = cursor.execute("SELECT ecr_admin_name FROM administration WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchone()[0]
         ##admin_email = cursor.execute("SELECT email FROM employees WHERE name = \'{}\'".format(admin_name)).fetchone()[0]
         ##user_email = cursor.execute("SELECT email FROM employees WHERE name = \'{}\'".format(self.current_user)).fetchone()[0]
 
@@ -992,6 +1008,7 @@ class ECRevApp(wx.App):
 
         self.modify_ecr_dialog = self.res.LoadDialog(None, 'dialog:edit_ecr')
         self.modify_ecr_dialog.SetTitle('Modify ECR: {}'.format(modify_ecr_id))
+        #ctrl(self.modify_ecr_dialog, 'panel:committee').Enable()
         # self.modify_ecr_dialog.SetSize((750, 550))
 
         cursor = Database.connection.cursor()
@@ -1151,6 +1168,7 @@ class ECRevApp(wx.App):
                 "SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(
                     Ecrs.Prod_Plant))
             ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').AppendItems(zip(*cursor.fetchall())[0])
+        
         # hide committee panel if not the right type of ECR reason
         if reason not in Ecrs.reasons_needing_approval:
             ctrl(self.modify_ecr_dialog, 'panel:committee').Hide()
@@ -1418,7 +1436,7 @@ class ECRevApp(wx.App):
         cursor = Database.connection.cursor()
         if Ecrs.Prod_Plant == 'Systems':
 
-            reasons = list(zip(*cursor.execute("SELECT reason FROM revision_reason_choices ORDER BY reason ASC").fetchall())[0])
+            reasons = list(zip(*cursor.execute("SELECT reason FROM revision_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(Ecrs.Prod_Plant)).fetchall())[0])
             try:
                 ecr_reason = cursor.execute("SELECT reason FROM ecrs WHERE id={}".format(related_ecr)).fetchone()[0]
             except:
@@ -1432,7 +1450,7 @@ class ECRevApp(wx.App):
             ctrl(self.new_revision_dialog, 'choice:revision_reasons').AppendItems(reasons)
 
         else:
-            reasons = zip(*cursor.execute("SELECT reason FROM ecr_reason_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0]
+            reasons = zip(*cursor.execute("SELECT reason FROM revision_reason_choices where Production_Plant = \'{}\' ORDER BY reason ASC".format(Ecrs.Prod_Plant)).fetchall())[0]
             ctrl(self.new_revision_dialog, 'choice:revision_reasons').AppendItems(reasons)
 
         ctrl(self.new_revision_dialog, 'label:item_numbers').SetLabel(item_label)
@@ -1493,9 +1511,9 @@ class ECRevApp(wx.App):
         # generate doc tree from database
         cursor = Database.connection.cursor()
         if Ecrs.Prod_Plant == 'Systems':
-            raw_tree_data = zip(*cursor.execute("SELECT document FROM revision_document_choices").fetchall())[0]
+            raw_tree_data = zip(*cursor.execute("SELECT document FROM revision_document_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0]
         else:
-            raw_tree_data = zip(*cursor.execute("SELECT document FROM ecr_document_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0]
+            raw_tree_data = zip(*cursor.execute("SELECT document FROM revision_document_choices where Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0]
 
         level_values = [None, None, None, None, None]
         branch_pointers = [root, root, root, root, root]
@@ -1552,6 +1570,7 @@ def on_click_login(event):
     selected_user = ctrl(General.app.login_frame, 'choice:name').GetStringSelection()
     entered_password = ctrl(General.app.login_frame, 'text:password').GetValue()
     selected_plant = ctrl(General.app.login_frame, 'choice:plant').GetStringSelection()
+    remember_password = ctrl(General.app.login_frame, 'm_checkBoxRemPass').GetValue()
 
     if selected_plant == "Cases":
         Ecrs.table_used = 'orders_cases'
@@ -1589,6 +1608,10 @@ def on_click_login(event):
         config = ConfigParser.ConfigParser()
         config.read('ECRev.cfg')
         config.set('Application', 'login_name', selected_user)
+        config.set('Application', 'password', entered_password)
+        config.set('Application', 'plant', selected_plant)
+        config.set('Application', 'remember_password', remember_password )
+
 
         with open('ECRev.cfg', 'w+') as configfile:
             config.write(configfile)
@@ -1719,8 +1742,7 @@ if __name__ == '__main__':
 
             cursor = Database.connection.cursor()
 
-            General.attachment_directory = \
-                cursor.execute("SELECT TOP 1 attachment_directory FROM administration").fetchone()[0]
+            General.attachment_directory = cursor.execute("SELECT TOP 1 attachment_directory FROM administration").fetchone()[0]
 
             if Database.connection:
                 General.app.init_login_frame()
