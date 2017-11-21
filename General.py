@@ -1,41 +1,63 @@
 import datetime as dt
-import time 
+import time
 import os
 import sys
 import wx
 from subprocess import Popen
 import shlex
-import psutil #for killing the splash screen process
-
+import psutil  # for killing the splash screen process
+import json
 import Database
 
 import ConfigParser
-import shutil #for coping files (like app update files)
+import shutil  # for coping files (like app update files)
 
-#global variable hold reference to wxGUI
+# global variable hold reference to wxGUI
 app = None
 
-#attachment_directory = r'S:\Everyone\Management Software\ECRev\ecr attachments'
+# attachment_directory = r'S:\Everyone\Management Software\ECRev\ecr attachments'
 attachment_directory = None
 
-def format_date_nicely(date_string):
-	date_string = str(date_string)
-	if date_string == '' or date_string == None:
-		return
-		
-	dt_object = time.strptime(date_string, "%Y-%m-%d %H:%M:%S") #to python time object
-	return time.strftime("%m/%d/%y   %I:%M %p", dt_object)
+updates_dir = r"C:\Users\sdb25\Desktop\Mydocs\New Trieal"
 
+
+def format_date_nicely(date_string):
+    date_string = str(date_string)
+    if date_string == '' or date_string == None:
+        return
+
+    dt_object = time.strptime(date_string, "%Y-%m-%d %H:%M:%S")  # to python time object
+    return time.strftime("%m/%d/%y   %I:%M %p", dt_object)
 
 
 def resource_path(relative):
-	try:
-		return os.path.join(sys._MEIPASS, relative)
-	except:
-		return relative
+    try:
+        return os.path.join(sys._MEIPASS, relative)
+    except:
+        return relative
 
 
 def check_for_updates(current_version):
+    try:
+        with open(os.path.join(updates_dir, "releases.json")) as file:
+            releases = json.load(file)
+
+            latest_version = releases[0]['version']
+            print latest_version
+
+            if current_version != latest_version:
+                wx.MessageBox("A new version of ECRev is found on Server. You must update to continue",
+                              "Software Update Available", wx.OK | wx.ICON_INFORMATION)
+                install_filename = releases[0]['installer filename']
+                source_filepath = os.path.join(updates_dir, install_filename)
+                os.startfile(source_filepath)
+                return True
+            else:
+                return False
+
+    except Exception as e:
+        print 'Failed update check:', e
+    """   
 	try:
 		sys._MEIPASS
 	except:
@@ -178,5 +200,4 @@ def check_for_updates(current_version):
 	else:
 		wx.MessageBox('Could not locate \'ECRev.cfg\' in the ECRev folder.\nUnable to read update information.', 'ERROR', wx.OK | wx.ICON_ERROR)
 		return False
-
-
+"""

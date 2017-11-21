@@ -19,6 +19,19 @@
 			<packing>1</packing>
 			<separation>5</separation>
 			<object class="separator" />
+			<object class="wxTextCtrl" name="m_textCtrlHeader">
+				<style>wxTE_LEFT|wxTE_READONLY</style>
+				<size>200,-1</size>
+				<bg>#f0f0f0</bg>
+				<fg>#000000</fg>
+				<font>
+					<size>8</size>
+					<style>normal</style>
+					<weight>bold</weight>
+					<underlined>0</underlined>
+				</font>
+				<value></value>
+			</object>
 		</object>
 		<object class="wxBoxSizer">
 			<orient>wxVERTICAL</orient>

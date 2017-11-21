@@ -3,7 +3,7 @@ CLS
 
 set app_name=ECRev
 set main_dir=%~dp0
-set pyinstaller_dir=C:\pyinstaller-2.0\utils
+set pyinstaller_dir=S:\Everyone\Management Software\pyinstaller-2.0\utils
 set build_options=
 set python=C:\Python27\python.exe
 

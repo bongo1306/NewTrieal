@@ -7,6 +7,7 @@ import sys
 import os
 import traceback  # if an error occurs in the program, traceback can give us a run up to what caused the problem
 import operator
+import json
 
 # wxWidgets used as the GUI
 import wx
@@ -329,7 +330,8 @@ class ECRevApp(wx.App):
         # set window's title with user's name reordered as first then last name
         reordered_name = self.current_user.replace(' ', '')  # remove any spaces
         reordered_name = reordered_name.split(',')[1] + ' ' + reordered_name.split(',')[0]
-        self.main_frame.SetTitle('ECRev v{} - Logged in as {} in {} Plant'.format(version, reordered_name, Ecrs.Prod_Plant))
+        self.main_frame.SetTitle('ECRev v{} - Logged in as {} in {} Database'.format(version, reordered_name, Ecrs.Prod_Plant))
+        ctrl(self.main_frame, 'm_textCtrlHeader').AppendText('You are in {} Database'.format(Ecrs.Prod_Plant))
 
         # initially populate some common lists
         Ecrs.refresh_my_ecrs_list(limit=15)
