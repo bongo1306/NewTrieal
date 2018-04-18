@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '8.5'
+version = '8.8'
 
 # extend Python's functionality by importing modules
 import sys
@@ -206,8 +206,7 @@ class ECRevApp(wx.App):
 
         cursor = Database.connection.cursor()
         people = list(zip(*cursor.execute(
-            'SELECT name FROM employees WHERE department = \'Design Engineering\' OR department = \'Applications Engineering\' ORDER BY name ASC').fetchall())[
-                          0])
+            'SELECT name FROM employees WHERE department = \'Design Engineering\' OR department = \'Applications Engineering\' OR gets_assignments = 1 ORDER BY name ASC').fetchall())[0])
         people.insert(0, '')
         ctrl(self.assign_ecr_dialog, 'choice:name').AppendItems(people)
 
@@ -513,16 +512,16 @@ class ECRevApp(wx.App):
 
         # fill in the fields of the ecr we are modifing
         ecr = cursor.execute(
-            "SELECT reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity FROM ecrs WHERE id = \'{}\'".format(
+            "SELECT reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity, Units_Affected FROM ecrs WHERE id = \'{}\'".format(
                 close_ecr_id)).fetchone()
-        reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity = ecr
+        reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity, Units_Affected = ecr
 
         # add component options
         if Ecrs.Prod_Plant == 'Systems':
             if type == 'Other':
-                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components").fetchall())[0])
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
             else:
-                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE discipline='{}'".format(type)).fetchall())[0])
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' AND discipline= \'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[0])
 
             components.insert(0, '')
             ctrl(self.close_ecr_dialog, 'choice:ecr_component').AppendItems(components)
@@ -533,9 +532,9 @@ class ECRevApp(wx.App):
 
         # add sub_system options
             if type == 'Other':
-                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems").fetchall())[0])
+                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
             else:
-                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE discipline='{}'".format(type)).fetchall())[0])
+                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[0])
 
             sub_systems.insert(0, '')
             ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_systems)
@@ -544,7 +543,36 @@ class ECRevApp(wx.App):
                 ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
                 ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
         else:
-            components_list_cases = ['Air block', 'Air Deflector', 'Base', 'Brackets', 'Breaker', 'Bumper/retainer',
+            if type == 'Other':
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
+            else:
+                components = list(zip(*cursor.execute(
+                    "SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[0])
+
+            components.insert(0, '')
+            ctrl(self.close_ecr_dialog, 'choice:ecr_component').AppendItems(components)
+
+            if component:
+                ctrl(self.close_ecr_dialog, 'choice:ecr_component').Insert(component, 1)
+                ctrl(self.close_ecr_dialog, 'choice:ecr_component').SetStringSelection(component)
+
+                # add sub_system options
+            if type == 'Other':
+                sub_systems = list(
+                    zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
+            else:
+                sub_systems = list(zip(*cursor.execute(
+                    "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[
+                                       0])
+
+            sub_systems.insert(0, '')
+            ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_systems)
+
+            if sub_system:
+                ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
+                ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
+
+            """components_list_cases = ['Air block', 'Air Deflector', 'Base', 'Brackets', 'Breaker', 'Bumper/retainer',
                                      'Coil',
                                      'Controller', 'Deck pans', 'Door/frame', 'End Assy', 'Fan', 'Glass', 'Horse Head',
                                      'Kick plates', 'Lights', 'Other', 'Painted part', 'Piping', 'Pnl, Foam, Back',
@@ -566,6 +594,7 @@ class ECRevApp(wx.App):
             ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_system_list_cases)
             # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system_list_cases, 1)
             # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system_list_cases)
+            """
 
         # add severity options
         ctrl(self.close_ecr_dialog, 'choice:ecr_severity').AppendItems(['High', 'Medium', 'Low'])
@@ -648,6 +677,7 @@ class ECRevApp(wx.App):
 
         if ecr[4] != None: ctrl(self.close_ecr_dialog, 'text:description').SetValue(ecr[4])
         if ecr[5] != None: ctrl(self.close_ecr_dialog, 'text:resolution').SetValue(ecr[5])
+        if ecr[16] != None: ctrl(self.close_ecr_dialog, 'm_NoUnitsAffected').SetValue(ecr[16])
 
         # paste in what was typed in the revisions for this ecr if there are any
         if ctrl(self.close_ecr_dialog, 'text:resolution').GetValue() == '':
@@ -892,7 +922,7 @@ class ECRevApp(wx.App):
 
     def init_new_ecr_dialog(self, duplicate_ecr_id=None):
         self.new_ecr_dialog = self.res.LoadDialog(None, 'dialog:new_ecr')
-        self.new_ecr_dialog.SetSize((750, 550))
+        self.new_ecr_dialog.SetSize((850, 650))
 
         # DBworks connection for checking part numbers entered in ecr description
         try:
@@ -1076,18 +1106,41 @@ class ECRevApp(wx.App):
 
         # fill in the fields of the ecr we are modifing
         ecr = cursor.execute(
-            "SELECT reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity FROM ecrs WHERE id = \'{}\'".format(
+            "SELECT reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity, Units_Affected FROM ecrs WHERE id = \'{}\'".format(
                 modify_ecr_id)).fetchone()
-        reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity = ecr
+        reference_number, document, reason, type, request, resolution, when_needed, who_errored, priority, who_approved_first, who_approved_second, approval_stage, item, component, sub_system, severity, Units_Affected = ecr
 
-        if Ecrs.Prod_Plant == "Systems":
-
-            # add component options
+        if Ecrs.Prod_Plant == 'Systems':
             if type == 'Other':
-                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components").fetchall())[0])
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
+            else:
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' AND discipline= \'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[0])
+
+            components.insert(0, '')
+            ctrl(self.modify_ecr_dialog, 'choice:ecr_component').AppendItems(components)
+
+            if component:
+                ctrl(self.modify_ecr_dialog, 'choice:ecr_component').Insert(component, 1)
+                ctrl(self.modify_ecr_dialog, 'choice:ecr_component').SetStringSelection(component)
+
+        # add sub_system options
+            if type == 'Other':
+                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
+            else:
+                sub_systems = list(zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[0])
+
+            sub_systems.insert(0, '')
+            ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_systems)
+
+            if sub_system:
+                ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
+                ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
+        else:
+            if type == 'Other':
+                components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
             else:
                 components = list(zip(*cursor.execute(
-                    "SELECT DISTINCT component FROM ecr.components WHERE discipline='{}'".format(type)).fetchall())[0])
+                    "SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[0])
 
             components.insert(0, '')
             ctrl(self.modify_ecr_dialog, 'choice:ecr_component').AppendItems(components)
@@ -1099,10 +1152,10 @@ class ECRevApp(wx.App):
                 # add sub_system options
             if type == 'Other':
                 sub_systems = list(
-                    zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems").fetchall())[0])
+                    zip(*cursor.execute("SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' ".format(Ecrs.Prod_Plant)).fetchall())[0])
             else:
                 sub_systems = list(zip(*cursor.execute(
-                    "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE discipline='{}'".format(type)).fetchall())[
+                    "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(Ecrs.Prod_Plant, type)).fetchall())[
                                        0])
 
             sub_systems.insert(0, '')
@@ -1112,8 +1165,7 @@ class ECRevApp(wx.App):
                 ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
                 ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
 
-        else:
-            components_list_cases = ['Air block', 'Air Deflector', 'Base', 'Brackets', 'Breaker', 'Bumper/retainer',
+            """components_list_cases = ['Air block', 'Air Deflector', 'Base', 'Brackets', 'Breaker', 'Bumper/retainer',
                                      'Coil',
                                      'Controller', 'Deck pans', 'Door/frame', 'End Assy', 'Fan', 'Glass', 'Horse Head',
                                      'Kick plates', 'Lights', 'Other', 'Painted part', 'Piping', 'Pnl, Foam, Back',
@@ -1134,7 +1186,7 @@ class ECRevApp(wx.App):
             # sub_system_list_cases.insert(0, '')
             ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_system_list_cases)
             # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system_list_cases, 1)
-            #ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system_list_cases)
+            #ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system_list_cases)"""
 
         # add severity options
         ctrl(self.modify_ecr_dialog, 'choice:ecr_severity').AppendItems(['High', 'Medium', 'Low'])
@@ -1209,6 +1261,7 @@ class ECRevApp(wx.App):
 
         if ecr[4] != None: ctrl(self.modify_ecr_dialog, 'text:description').SetValue(ecr[4])
         if ecr[5] != None: ctrl(self.modify_ecr_dialog, 'text:resolution').SetValue(ecr[5])
+        if ecr[16] != None: ctrl(self.modify_ecr_dialog, 'm_NoUnitsAffected').SetValue(ecr[16])
 
         need_by_date = time.strptime(str(ecr[6]), "%Y-%m-%d %H:%M:%S")  # to python time object
         ctrl(self.modify_ecr_dialog, 'calendar:ecr_need_by').SetDate(

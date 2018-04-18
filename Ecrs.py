@@ -41,7 +41,7 @@ import ECRev
 # reasons_needing_approval = ['Part Substitution', 'Customer Change', 'Agency Approval', 'Platform Change', 'Continuing Improvement', 'Spec Alignment']
 
 reasons_needing_approval = [
-    "Customer Change", "Customer Change Requests",
+    "Customer Change", "Customer Change Requests", "Committee Review",
 ]
 
 
@@ -478,7 +478,7 @@ def check_reference_field(event):
 
     elif len(entry) == 8 and entry[0] == '5':
         # it might be a sales order, search for it in the DB
-        sql = "SELECT * FROM {} WHERE sales_order LIKE '%{}%'".format(table_used, entry)
+        sql = "SELECT * FROM {} WHERE sales_order = '{}'".format(table_used, entry)
         thread = Thread(target=Database.query_one, args=(sql, update_useful_info_panel))
         thread.start()
     else:
@@ -682,6 +682,7 @@ def on_click_close_ecr(event):
     reason = ctrl(General.app.close_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
     document = ctrl(General.app.close_ecr_dialog, 'choice:ecr_document').GetStringSelection()
     request = ctrl(General.app.close_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''")
+    Units_Affected = ctrl(General.app.close_ecr_dialog, 'm_NoUnitsAffected').GetValue().replace("'", "''").replace('\"', "''''")
     when_needed = need_by_date
     resolution = ctrl(General.app.close_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"',
                                                                                                              "''''")
@@ -721,6 +722,7 @@ def on_click_close_ecr(event):
     sql += 'reason=\'{}\', '.format(reason)
     sql += 'document=\'{}\', '.format(document)
     sql += 'request=\'{}\', '.format(request)
+    sql += 'Units_Affected=\'{}\', '.format(Units_Affected)
     sql += 'when_needed=\'{} 23:59:00\', '.format(when_needed)
     sql += 'resolution=\'{}\', '.format(resolution)
 
@@ -1010,6 +1012,12 @@ def on_click_submit_ecr(event):
             'Hint', wx.OK | wx.ICON_WARNING)
         return
 
+    """if ctrl(General.app.new_ecr_dialog, 'm_NoUnitsAff').GetValue().strip() == '':
+        wx.MessageBox(
+            'You must enter No. of Units Affected by this Request',
+            'Hint', wx.OK | wx.ICON_WARNING)
+        return"""
+
     need_by_date = ctrl(General.app.new_ecr_dialog, 'calendar:ecr_need_by').GetDate()
     need_by_date = dt.date(need_by_date.GetYear(), need_by_date.GetMonth() + 1, need_by_date.GetDay())
     if need_by_date < dt.date.today():
@@ -1050,7 +1058,7 @@ def on_click_submit_ecr(event):
     new_id = cursor.execute("SELECT MAX(id) FROM ecrs").fetchone()[0] + 1
 
     if item_number != None:
-        sql = 'INSERT INTO ecrs (id, status, reference_number, item, document, reason, department, who_requested, type, request, attachment, when_requested, Production_Plant, when_needed) VALUES ('
+        sql = 'INSERT INTO ecrs (id, status, reference_number, item, document, reason, department, who_requested, type, request, attachment, when_requested, Production_Plant, Units_Affected, when_needed) VALUES ('
         sql += '{}, '.format(new_id)
         sql += '\'Open\', '
         sql += '\'{}\', '.format(reference_number)
@@ -1064,9 +1072,10 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{}\', '.format(Prod_Plant)
+        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'm_NoUnitsAff').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += '\'{} 23:59:00\')'.format(need_by_date)
     else:
-        sql = 'INSERT INTO ecrs (id, status, reference_number, document, reason, department, who_requested, type, request, attachment, when_requested, Production_Plant, when_needed) VALUES ('
+        sql = 'INSERT INTO ecrs (id, status, reference_number, document, reason, department, who_requested, type, request, attachment, when_requested, Production_Plant, Units_Affected, when_needed) VALUES ('
         sql += '{}, '.format(new_id)
         sql += '\'Open\', '
         sql += '\'{}\', '.format(reference_number)
@@ -1080,6 +1089,7 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{}\', '.format(Prod_Plant)
+        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'm_NoUnitsAff').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += '\'{} 23:59:00\')'.format(need_by_date)
 
     # print sql
@@ -1127,19 +1137,18 @@ def on_click_modify_ecr(event):
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(ecr_id)).fetchone()[0]
     new_reason_code = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
     if previous_reason_code != new_reason_code:
-        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, Production_Plant, new_code) VALUES ("
+        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, Production_Plant, Units_Affected, new_code) VALUES ("
         sql += "{}, ".format(ecr_id)
         sql += "'{}', ".format(General.app.current_user)
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
         sql += '\'{}\', '.format(Prod_Plant)
+        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'm_NoUnitsAff').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += "'{}')".format(new_reason_code)
         
         cursor.execute(sql)
 
-    reference_number = ctrl(General.app.modify_ecr_dialog, 'text:reference_number').GetValue().replace("'",
-                                                                                                       "''").replace(
-        '\"', "''''")
+    reference_number = ctrl(General.app.modify_ecr_dialog, 'text:reference_number').GetValue().replace("'","''").replace('\"', "''''")
     item_number = Database.get_item_from_ref(reference_number)
 
     sql = 'UPDATE ecrs SET '
@@ -1155,6 +1164,7 @@ def on_click_modify_ecr(event):
     sql += 'document=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_document').GetStringSelection())
     sql += 'request=\'{}\', '.format(
         ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+    sql += 'Units_Affected=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'm_NoUnitsAffected').GetValue().replace("'", "''").replace('\"', "''''"))
     sql += 'when_needed=\'{} 23:59:00\', '.format(need_by_date)
     sql += 'resolution=\'{}\', '.format(
         ctrl(General.app.modify_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"', "''''"))
@@ -1964,7 +1974,7 @@ def refresh_open_ecrs_list(event=None, limit=100):
     column_names = ["Id", "Who Claimed", "Who Assigned", "Sales Order", "Item", "Production Order",
                     "Request", "Who Requested", "When Needed", "When Requested", "ReferenceNo",
                     "Reason", "Department", "Type", "Who Modified", "When Modified",
-                    "When Claimed", "When Assigned", "Attachment", "Resolution", ]
+                    "When Claimed", "When Assigned", "Attachment", "Resolution","Approval Stage", "Production Plant", "Units Affected" ]
 
     if open_ecr_list.GetColumn(0) == None:
         for index, column_name in enumerate(column_names):
@@ -1998,7 +2008,9 @@ def refresh_open_ecrs_list(event=None, limit=100):
             ecrs.when_assigned,
             ecrs.attachment,
             ecrs.resolution,
-            ecrs.approval_stage
+            ecrs.approval_stage,
+            ecrs.Production_Plant,
+            ecrs.Units_Affected
         FROM 
             dbo.ecrs
         LEFT JOIN      

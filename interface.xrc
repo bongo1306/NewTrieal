@@ -2,7 +2,7 @@
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
 	<object class="wxFrame" name="frame:main">
 		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
-		<size>900,780</size>
+		<size>974,780</size>
 		<font>
 			<size>10</size>
 			<style>normal</style>
@@ -57,7 +57,7 @@
 						<object class="wxNotebook" name="notebook:main">
 							<object class="notebookpage">
 								<label>  ECRs  </label>
-								<selected>1</selected>
+								<selected>0</selected>
 								<object class="wxPanel" name="m_panel81">
 									<style>wxTAB_TRAVERSAL</style>
 									<object class="wxBoxSizer">
@@ -832,7 +832,7 @@
 															<object class="wxNotebook" name="notebook:ecrs">
 																<object class="notebookpage">
 																	<label>  My ECRs  </label>
-																	<selected>1</selected>
+																	<selected>0</selected>
 																	<object class="wxPanel" name="panel:my_ecrs">
 																		<style>wxTAB_TRAVERSAL</style>
 																		<object class="wxBoxSizer">
@@ -882,7 +882,7 @@
 																</object>
 																<object class="notebookpage">
 																	<label>  All Open ECRs*  </label>
-																	<selected>0</selected>
+																	<selected>1</selected>
 																	<object class="wxPanel" name="panel:all_open_ecrs">
 																		<style>wxTAB_TRAVERSAL</style>
 																		<object class="wxBoxSizer">
@@ -1219,7 +1219,7 @@
 							</object>
 							<object class="notebookpage">
 								<label>  Search  </label>
-								<selected>0</selected>
+								<selected>1</selected>
 								<object class="wxPanel" name="m_panel24">
 									<style>wxTAB_TRAVERSAL</style>
 									<object class="wxBoxSizer">
@@ -1288,10 +1288,9 @@
 																<orient>wxVERTICAL</orient>
 																<object class="sizeritem">
 																	<option>3</option>
-																	<flag>wxEXPAND|wxALL</flag>
+																	<flag>wxALL|wxEXPAND</flag>
 																	<border>5</border>
 																	<object class="wxStaticBoxSizer">
-																		<minsize>400,-1</minsize>
 																		<orient>wxVERTICAL</orient>
 																		<label>Search criteria:</label>
 																		<object class="sizeritem">
@@ -2103,7 +2102,7 @@
 	</object>
 	<object class="wxDialog" name="dialog:new_ecr">
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
-		<size>750,550</size>
+		<size>880,702</size>
 		<font>
 			<size>10</size>
 			<style>normal</style>
@@ -2286,6 +2285,32 @@
 								<border>5</border>
 								<object class="wxBoxSizer">
 									<orient>wxVERTICAL</orient>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxBoxSizer">
+									<orient>wxHORIZONTAL</orient>
+									<object class="sizeritem">
+										<option>0</option>
+										<flag>wxALL</flag>
+										<border>5</border>
+										<object class="wxStaticText" name="m_NoUnitsAffected">
+											<label>No. of Units Affected:</label>
+											<wrap>-1</wrap>
+										</object>
+									</object>
+									<object class="sizeritem">
+										<option>0</option>
+										<flag>wxALL</flag>
+										<border>5</border>
+										<object class="wxTextCtrl" name="m_NoUnitsAff">
+											<size>240,-1</size>
+											<value></value>
+										</object>
+									</object>
 								</object>
 							</object>
 						</object>
@@ -3805,8 +3830,8 @@
 		</object>
 	</object>
 	<object class="wxFrame" name="frame:login">
-		<style>wxCAPTION|wxCLOSE_BOX|wxFRAME_SHAPED|wxSYSTEM_MENU|wxTAB_TRAVERSAL</style>
-		<size>358,287</size>
+		<style>wxCAPTION|wxCLOSE_BOX|wxFRAME_SHAPED|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER|wxSYSTEM_MENU|wxTAB_TRAVERSAL</style>
+		<size>450,350</size>
 		<font>
 			<size>10</size>
 			<style>normal</style>
@@ -3974,6 +3999,7 @@
 	</object>
 	<object class="wxDialog" name="dialog:edit_ecr">
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<size>867,776</size>
 		<font>
 			<size>10</size>
 			<style>normal</style>
@@ -4281,6 +4307,32 @@
 													<border>5</border>
 													<object class="wxBoxSizer">
 														<orient>wxVERTICAL</orient>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>1</option>
+													<flag>wxEXPAND</flag>
+													<border>5</border>
+													<object class="wxBoxSizer">
+														<orient>wxHORIZONTAL</orient>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxALL</flag>
+															<border>5</border>
+															<object class="wxStaticText" name="m_NoUnitAffected">
+																<label>No. of Units Affected:</label>
+																<wrap>-1</wrap>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxALL</flag>
+															<border>5</border>
+															<object class="wxTextCtrl" name="m_NoUnitsAffected">
+																<size>150,-1</size>
+																<value></value>
+															</object>
+														</object>
 													</object>
 												</object>
 											</object>

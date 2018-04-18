@@ -18,7 +18,7 @@ app = None
 # attachment_directory = r'S:\Everyone\Management Software\ECRev\ecr attachments'
 attachment_directory = None
 
-updates_dir = r"C:\Users\sdb25\Desktop\Mydocs\New Trieal"
+updates_dir = r"\\cbssrvit\kwfiles\Management Software\ECRev\release"
 
 
 def format_date_nicely(date_string):

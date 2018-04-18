@@ -339,8 +339,8 @@ def on_select_table(event):
     General.app.table_search_criteria.EnableDragRowSize(False)
 
     General.app.table_search_criteria.Bind(wx.EVT_SIZE, on_size_criteria_table)
-    General.app.table_search_criteria.Bind(wx.grid.EVT_GRID_CELL_CHANGE, on_change_grid_cell)
-    # General.app.table_search_criteria.Bind(wx.EVT_CHAR, on_change_grid_cell)
+    #General.app.table_search_criteria.Bind(wx.grid.EVT_GRID_CELL_CHANGE, on_change_grid_cell)
+    General.app.table_search_criteria.Bind(wx.EVT_CHAR, on_change_grid_cell)
 
 
     # for row in range(1, 25):
