@@ -1137,13 +1137,12 @@ def on_click_modify_ecr(event):
     previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(ecr_id)).fetchone()[0]
     new_reason_code = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
     if previous_reason_code != new_reason_code:
-        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, Production_Plant, Units_Affected, new_code) VALUES ("
+        sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, Production_Plant, new_code) VALUES ("
         sql += "{}, ".format(ecr_id)
         sql += "'{}', ".format(General.app.current_user)
         sql += "'{}', ".format(str(dt.datetime.today())[:19])
         sql += "'{}', ".format(previous_reason_code)
         sql += '\'{}\', '.format(Prod_Plant)
-        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'm_NoUnitsAff').GetValue().replace("'", "''").replace('\"', "''''"))
         sql += "'{}')".format(new_reason_code)
         
         cursor.execute(sql)

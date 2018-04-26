@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '8.8'
+version = '9.0'
 
 # extend Python's functionality by importing modules
 import sys
