@@ -2,7 +2,7 @@
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
 	<object class="wxFrame" name="frame:main">
 		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
-		<size>974,780</size>
+		<size>1003,780</size>
 		<font>
 			<size>10</size>
 			<style>normal</style>
@@ -57,7 +57,7 @@
 						<object class="wxNotebook" name="notebook:main">
 							<object class="notebookpage">
 								<label>  ECRs  </label>
-								<selected>0</selected>
+								<selected>1</selected>
 								<object class="wxPanel" name="m_panel81">
 									<style>wxTAB_TRAVERSAL</style>
 									<object class="wxBoxSizer">
@@ -1219,7 +1219,7 @@
 							</object>
 							<object class="notebookpage">
 								<label>  Search  </label>
-								<selected>1</selected>
+								<selected>0</selected>
 								<object class="wxPanel" name="m_panel24">
 									<style>wxTAB_TRAVERSAL</style>
 									<object class="wxBoxSizer">
@@ -4329,7 +4329,44 @@
 															<flag>wxALL</flag>
 															<border>5</border>
 															<object class="wxTextCtrl" name="m_NoUnitsAffected">
-																<size>150,-1</size>
+																<size>152,-1</size>
+																<value></value>
+															</object>
+														</object>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>1</option>
+													<flag>wxEXPAND</flag>
+													<border>5</border>
+													<object class="wxBoxSizer">
+														<orient>wxHORIZONTAL</orient>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxALL</flag>
+															<border>5</border>
+															<object class="wxButton" name="button:Attach">
+																<label>Attach Documents</label>
+																<default>0</default>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxALL</flag>
+															<border>5</border>
+															<object class="wxTextCtrl" name="text:m_AttachList">
+																<style>wxTE_MULTILINE|wxTE_READONLY</style>
+																<size>145,-1</size>
+																<value></value>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxALL</flag>
+															<border>5</border>
+															<object class="wxTextCtrl" name="text:m_AttachListPaths">
+																<style>wxTE_MULTILINE|wxTE_READONLY</style>
+																<hidden>1</hidden>
 																<value></value>
 															</object>
 														</object>

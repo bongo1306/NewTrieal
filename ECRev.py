@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.0'
+version = '9.2'
 
 # extend Python's functionality by importing modules
 import sys
@@ -449,6 +449,11 @@ class ECRevApp(wx.App):
         self.close_ecr_dialog.SetTitle('Close ECR: {}'.format(close_ecr_id))
         # self.close_ecr_dialog.SetSize((750, 550))
 
+        #Hide Attach Documents Stuff
+        ctrl(self.close_ecr_dialog, 'button:Attach').Hide()
+        ctrl(self.close_ecr_dialog, 'text:m_AttachList').Hide()
+        ctrl(self.close_ecr_dialog, 'text:m_AttachListPaths').Hide()
+
         cursor = Database.connection.cursor()
 
         # show committee panel if authorized
@@ -842,6 +847,13 @@ class ECRevApp(wx.App):
         ###self.main_frame.Bind(wx.EVT_LIST_ITEM_SELECTED, Ecrs.on_select_ecr_item, id=xrc.XRCID('list:results'))
         ###self.main_frame.Bind(wx.EVT_BUTTON, Ecrs.export_search_results, id=xrc.XRCID('button:export'))
 
+        self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:my_ecrs'))
+        self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:open_ecrs'))
+        self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:closed_ecrs'))
+        self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:my_assigned_ecrs'))
+        self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:committee_ecrs'))
+
+
         '''
         #the search panel is initialialy hidden as described by the GUI XRC. This is because
         # for some reason the window gets force to tall otherwise. So gotta call Show() on it.
@@ -1090,7 +1102,7 @@ class ECRevApp(wx.App):
         # self.modify_ecr_dialog.Bind(wx.EVT_TEXT, Ecrs.on_text_ecr_description, id=xrc.XRCID('text:description'))
         # self.modify_ecr_dialog.Bind(wx.EVT_CHOICE, Ecrs.on_select_ecr_reason, id=xrc.XRCID('choice:ecr_reason'))
         # self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_submit_ecr, id=xrc.XRCID('button:submit_ecr'))
-        # self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_attatch_document, id=xrc.XRCID('button:attach_document'))
+        self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_attach_document, id=xrc.XRCID('button:Attach'))
 
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_modify_ecr, id=xrc.XRCID('button:modify_or_close_ecr'))
 
@@ -1262,6 +1274,7 @@ class ECRevApp(wx.App):
         if ecr[4] != None: ctrl(self.modify_ecr_dialog, 'text:description').SetValue(ecr[4])
         if ecr[5] != None: ctrl(self.modify_ecr_dialog, 'text:resolution').SetValue(ecr[5])
         if ecr[16] != None: ctrl(self.modify_ecr_dialog, 'm_NoUnitsAffected').SetValue(ecr[16])
+        ctrl(self.modify_ecr_dialog, 'text:m_AttachList').SetValue('')
 
         need_by_date = time.strptime(str(ecr[6]), "%Y-%m-%d %H:%M:%S")  # to python time object
         ctrl(self.modify_ecr_dialog, 'calendar:ecr_need_by').SetDate(
@@ -1788,18 +1801,18 @@ if __name__ == '__main__':
         Database.connection = Database.connect_to_database()
 
         if General.check_for_updates(version) == False:
-            # Database.connection = Database.connect_to_database()
+             Database.connection = Database.connect_to_database()
 
-            # set attachment directory
-            # config = ConfigParser.ConfigParser()
-            # config.read('ECRev.cfg')
-            # General.attachment_directory = config.get('Application', 'attachment_directory')
+             #set attachment directory
+             #config = ConfigParser.ConfigParser()
+             #config.read('ECRev.cfg')
+             #General.attachment_directory = config.get('Application', 'attachment_directory')
 
-            cursor = Database.connection.cursor()
+             cursor = Database.connection.cursor()
 
-            General.attachment_directory = cursor.execute("SELECT TOP 1 attachment_directory FROM administration").fetchone()[0]
+             General.attachment_directory = cursor.execute("SELECT TOP 1 attachment_directory FROM administration").fetchone()[0]
 
-            if Database.connection:
+             if Database.connection:
                 General.app.init_login_frame()
                 General.app.MainLoop()
 

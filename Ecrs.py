@@ -604,6 +604,32 @@ def on_click_attatch_document(event):
 
     dialog.Destroy()
 
+def on_click_attach_document(event):
+    dialog = wx.FileDialog(None, style=wx.OPEN | wx.MULTIPLE)
+
+    if dialog.ShowModal() == wx.ID_OK:
+        file_paths = dialog.GetPaths()
+
+        # write the file names to the text box and write the full file
+        # name with path to the hidden text box next to it so we can read it later
+        files_string = ''
+        files_with_path_string = ''
+
+        for path in file_paths:
+            files_string += '; {}'.format(path.split('\\')[-1])
+            files_with_path_string += ';{}'.format(path)
+
+        files_string = files_string[2:]
+        files_with_path_string = files_with_path_string[1:]
+
+        ctrl(General.app.modify_ecr_dialog, 'text:m_AttachList').SetValue(files_string)
+        ctrl(General.app.modify_ecr_dialog, 'text:m_AttachListPaths').SetValue(files_with_path_string)
+    else:
+        ctrl(General.app.modify_ecr_dialog, 'text:m_AttachList').SetValue('')
+        ctrl(General.app.modify_ecr_dialog, 'text:m_AttachListPaths').SetValue('')
+
+    dialog.Destroy()
+
 
 def on_click_claim_ecr(event):
     ecr_id = ctrl(General.app.main_frame, 'label:ecr_panel_id').GetLabel()
@@ -1012,11 +1038,11 @@ def on_click_submit_ecr(event):
             'Hint', wx.OK | wx.ICON_WARNING)
         return
 
-    """if ctrl(General.app.new_ecr_dialog, 'm_NoUnitsAff').GetValue().strip() == '':
+    if ctrl(General.app.new_ecr_dialog, 'm_NoUnitsAff').GetValue().strip() == '':
         wx.MessageBox(
-            'You must enter No. of Units Affected by this Request',
+            'You must enter No. of Units Affected by this Request before submitting a new ECR',
             'Hint', wx.OK | wx.ICON_WARNING)
-        return"""
+        return
 
     need_by_date = ctrl(General.app.new_ecr_dialog, 'calendar:ecr_need_by').GetDate()
     need_by_date = dt.date(need_by_date.GetYear(), need_by_date.GetMonth() + 1, need_by_date.GetDay())
@@ -1102,6 +1128,12 @@ def on_click_submit_ecr(event):
     refresh_open_ecrs_list()
     General.app.new_ecr_dialog.Destroy()
 
+def on_activated_ecr(event):
+    selected_item = event.GetEventObject()
+    ecr_id = selected_item.GetItem(selected_item.GetFirstSelected(), 0).GetText()
+    print(ecr_id)
+    if ecr_id != '':
+        on_click_open_modify_ecr_form(event)
 
 def on_click_modify_ecr(event):
     need_by_date = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
@@ -1111,8 +1143,7 @@ def on_click_modify_ecr(event):
 
     # department = cursor.execute('SELECT department FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
 
-    ##attachment_string = ctrl(General.app.modify_ecr_dialog, 'text:attached_document_paths').GetValue()
-    '''
+    attachment_string = ctrl(General.app.modify_ecr_dialog, 'text:m_AttachListPaths').GetValue()
     try:
         if attachment_string != '':
             last_id = cursor.execute('SELECT MAX(id) FROM ecrs').fetchone()[0]
@@ -1129,7 +1160,6 @@ def on_click_modify_ecr(event):
     except:
         wx.MessageBox('ECR could not be submitted with those attachments for some reason...\n\n{}'.format(traceback.format_exc()), 'An error occurred!', wx.OK | wx.ICON_ERROR)
         return
-    '''
 
     ecr_id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
 
@@ -1150,6 +1180,12 @@ def on_click_modify_ecr(event):
     reference_number = ctrl(General.app.modify_ecr_dialog, 'text:reference_number').GetValue().replace("'","''").replace('\"', "''''")
     item_number = Database.get_item_from_ref(reference_number)
 
+    old_attachments = cursor.execute("Select top 1 attachment from ecrs where id = '{}'".format(ecr_id)).fetchone()[0]
+    try:
+        new_attachment_string = old_attachments + ';' + attachment_string
+    except:
+        new_attachment_string = attachment_string
+
     sql = 'UPDATE ecrs SET '
     sql += 'type=\'{}\', '.format(General.app.ecr_type)
     sql += 'reference_number=\'{}\', '.format(reference_number)
@@ -1164,6 +1200,7 @@ def on_click_modify_ecr(event):
     sql += 'request=\'{}\', '.format(
         ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
     sql += 'Units_Affected=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'm_NoUnitsAffected').GetValue().replace("'", "''").replace('\"', "''''"))
+    sql += 'attachment = \'{}\', '.format(new_attachment_string)
     sql += 'when_needed=\'{} 23:59:00\', '.format(need_by_date)
     sql += 'resolution=\'{}\', '.format(
         ctrl(General.app.modify_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"', "''''"))
@@ -1461,7 +1498,8 @@ def populate_ecr_order_panel(item_number):
             real_structural_by = structural_cad_designer
 
         ctrl(General.app.main_frame, 'label:order_panel_item_number').SetLabel(str(item))
-        ctrl(General.app.main_frame, 'label:order_panel_sales_order').SetLabel(str(sales_order) + '-' + str(line_up))
+        #ctrl(General.app.main_frame, 'label:order_panel_sales_order').SetLabel(str(sales_order) + '-' + str(line_up))
+        ctrl(General.app.main_frame, 'label:order_panel_sales_order').SetLabel(str(sales_order))
         ctrl(General.app.main_frame, 'label:order_panel_serial').SetLabel(str(serial))
         ctrl(General.app.main_frame, 'label:order_panel_customer').SetLabel(str(customer))
         ctrl(General.app.main_frame, 'label:order_panel_mechanical').SetLabel(str(real_mechanical_by))
@@ -2551,8 +2589,9 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
         <tr><td align=\"right\">ECR&nbsp;ID:&nbsp;</td><td>{}</td></tr>
         <tr><td align=\"right\">RefNo:&nbsp;</td><td>{}</td></tr>
         <tr><td align=\"right\" valign=\"top\">Request:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\" valign=\"top\">Resolution:&nbsp;</td><td>{}</td></tr>
         </table>
-        '''.format(shortcuts, item_number, sales_order, customer, location, model, ecr[0], ecr[1], ecr[2])
+        '''.format(shortcuts, item_number, sales_order, customer, location, model, ecr[0], ecr[1], ecr[2], ecr[3])
 
     body = MIMEMultipart('alternative')
     body.attach(MIMEText(body_html, 'html'))
