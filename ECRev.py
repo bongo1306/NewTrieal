@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.2'
+version = '9.3'
 
 # extend Python's functionality by importing modules
 import sys
@@ -199,6 +199,9 @@ class ECRevApp(wx.App):
         print 'Attempting to end program'
         # sys.exit('ECRev Program Exited') #doesn't actually kill the process everytime for some reason...
         os._exit(0)  # but this does
+
+    def do_nothing(self, evt):
+        print 'on events pit'
 
     def init_assign_ecr_dialog(self, ecr_id):
         self.assign_ecr_dialog = self.res.LoadDialog(None, 'dialog:assign_ecr')
@@ -453,6 +456,14 @@ class ECRevApp(wx.App):
         ctrl(self.close_ecr_dialog, 'button:Attach').Hide()
         ctrl(self.close_ecr_dialog, 'text:m_AttachList').Hide()
         ctrl(self.close_ecr_dialog, 'text:m_AttachListPaths').Hide()
+
+        # Bind Do_Nothing Event upon mousewheel scroll in order to not change users Dropdowns selection accidently
+        ctrl(self.close_ecr_dialog, 'choice:ecr_reason').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.close_ecr_dialog, 'choice:ecr_document').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.close_ecr_dialog, 'choice:ecr_component').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.close_ecr_dialog, 'choice:who_errored').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.close_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
         cursor = Database.connection.cursor()
 
@@ -740,6 +751,8 @@ class ECRevApp(wx.App):
         self.main_frame.Bind(wx.EVT_CHOICE, Administration.on_select_admin, id=xrc.XRCID('choice:admin'))
         self.main_frame.Bind(wx.EVT_BUTTON, Administration.on_click_backup_database,
                              id=xrc.XRCID('button:backup_database'))
+        # Bind Do_Nothing Event upon mousewheel scroll in order to not change users Dropdowns selection accidently
+        ctrl(self.main_frame, 'choice:admin').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
     def init_ecrs_tab(self):
         cursor = Database.connection.cursor()
@@ -936,6 +949,14 @@ class ECRevApp(wx.App):
         self.new_ecr_dialog = self.res.LoadDialog(None, 'dialog:new_ecr')
         self.new_ecr_dialog.SetSize((850, 650))
 
+        # Bind Do_Nothing Event upon mousewheel scroll in order to not change users Dropdowns selection accidently
+        ctrl(self.new_ecr_dialog, 'choice:ecr_reason').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.new_ecr_dialog, 'choice:ecr_document').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        #ctrl(self.modify_ecr_dialog, 'choice:ecr_component').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        #ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        #ctrl(self.modify_ecr_dialog, 'choice:who_errored').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        #ctrl(self.modify_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+
         # DBworks connection for checking part numbers entered in ecr description
         try:
             ##1/0.
@@ -1054,6 +1075,14 @@ class ECRevApp(wx.App):
         self.modify_ecr_dialog.SetTitle('Modify ECR: {}'.format(modify_ecr_id))
         #ctrl(self.modify_ecr_dialog, 'panel:committee').Enable()
         # self.modify_ecr_dialog.SetSize((750, 550))
+
+        # Bind Do_Nothing Event upon mousewheel scroll in order to not change users Dropdowns selection accidently
+        ctrl(self.modify_ecr_dialog, 'choice:ecr_reason').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.modify_ecr_dialog, 'choice:ecr_document').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.modify_ecr_dialog, 'choice:ecr_component').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.modify_ecr_dialog, 'choice:who_errored').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+        ctrl(self.modify_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
         cursor = Database.connection.cursor()
 
@@ -1332,6 +1361,9 @@ class ECRevApp(wx.App):
         self.joining_tables.append((Ecrs.table_used, 'ecrs', 'item', 'item'))
         # self.joining_tables.append(('time_logs', Ecrs.table_used, 'item', 'item'))
 
+        # Bind Do_Nothing Event upon mousewheel scroll in order to not change users Dropdowns selection accidently
+        ctrl(self.main_frame, 'choice:which_table').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+
 
         cursor = Database.connection.cursor()
         # tables = list(zip(*cursor.execute(r"SELECT name FROM sqlite_master WHERE type in ('table', 'view') AND name NOT LIKE 'sqlite_%' UNION ALL SELECT name FROM sqlite_temp_master WHERE type IN ('table', 'view') ORDER BY 1").fetchall())[0])
@@ -1489,6 +1521,9 @@ class ECRevApp(wx.App):
                                       id=xrc.XRCID('button:submit_revision'))
         self.new_revision_dialog.Bind(wx.EVT_CHOICE, Revisions.on_select_revision_reason,
                                       id=xrc.XRCID('choice:revision_reasons'))
+
+        # Bind Do_Nothing Event upon mousewheel scroll in order to not change users Dropdowns selection accidently
+        ctrl(self.new_revision_dialog, 'choice:revision_reasons').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
         item_label = 'For Item Numbers:  '
         for item in item_entries:
