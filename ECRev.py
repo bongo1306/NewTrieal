@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.3'
+version = '9.2'
 
 # extend Python's functionality by importing modules
 import sys
@@ -15,6 +15,7 @@ from wx import xrc  # allows the loading and access of xrc file (xml) that descr
 import wx.grid as gridlib  # an excel like table widget
 import wx.lib.scrolledpanel as scrolled  # for the scrollable search panel
 from wx.calendar import *
+import wx.richtext as rt
 
 ctrl = xrc.XRCCTRL  # define a shortined function name (just for convienience)
 
@@ -48,6 +49,164 @@ import TweakedGrid
 import BetterListCtrl
 
 
+def check_for_updates():
+    try:
+        with open(os.path.join(General.updates_dir, "releases.json")) as file:
+            releases = json.load(file)
+
+            latest_version = releases[0]['version']
+
+            if version != latest_version:
+                return True
+            else:
+                return False
+    except Exception as e:
+        print 'Failed update check:', e
+
+
+def open_software_update_frame():
+    SoftwareUpdateFrame(None)
+
+
+class SoftwareUpdateFrame(wx.Frame):
+    def __init__(self, parent):
+        # load frame XRC description
+        pre = wx.PreFrame()
+        #res = xrc.XmlResource.Get()
+        res = xrc.XmlResource(General.resource_path('interface.xrc'))
+        res.LoadOnFrame(pre, parent, "frame:software_update")
+        self.PostCreate(pre)
+        self.SetIcon(wx.Icon(General.resource_path('ECRev.ico'), wx.BITMAP_TYPE_ICO))
+
+        # read in update text data
+        with open(os.path.join(General.updates_dir, "releases.json")) as file:
+            releases = json.load(file)
+
+        latest_version = releases[0]['version']
+        self.install_filename = releases[0]['installer filename']
+
+        it_is_mandatory = False
+
+        # build up what changed text
+        changes_panel = ctrl(self, 'panel:changes')
+        richtext_ctrl = rt.RichTextCtrl(changes_panel, style=wx.VSCROLL | wx.HSCROLL | wx.TE_READONLY)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(richtext_ctrl, 1, wx.EXPAND)
+        changes_panel.SetSizer(sizer)
+        changes_panel.Layout()
+
+        for release in releases:
+            if float(version) < float(release['version']):
+
+                richtext_ctrl.BeginBold()
+                richtext_ctrl.WriteText('v{} - {}'.format(release['version'], release['release date']))
+                richtext_ctrl.EndBold()
+                richtext_ctrl.Newline()
+
+                richtext_ctrl.BeginStandardBullet('*', 50, 30)
+
+                for change in release['changes']:
+                    richtext_ctrl.WriteText('{}'.format(change))
+                    richtext_ctrl.Newline()
+
+                richtext_ctrl.EndStandardBullet()
+
+                if release['mandatory'] == True:
+                    it_is_mandatory = True
+
+        # bindings
+        self.Bind(wx.EVT_CLOSE, self.on_close_frame)
+        self.Bind(wx.EVT_BUTTON, self.on_click_cancel, id=xrc.XRCID('button:not_now'))
+        self.Bind(wx.EVT_BUTTON, self.on_click_update, id=xrc.XRCID('button:update'))
+
+        # misc
+        ctrl(self, 'label:intro_version').SetLabel(
+            "A new version of the ECRev software was found on the server: v{}".format(latest_version))
+        ctrl(self, 'button:update').SetFocus()
+
+        if it_is_mandatory == False:
+            ctrl(self, 'button:not_now').Enable()
+            ctrl(self, 'label:mandatory').Hide()
+
+        self.Show()
+
+    def on_click_cancel(self, event):
+        self.Close()
+
+    def on_click_update(self, event):
+        #General.app.login_frame.Destroy()
+        print 'copy install file over, open it, and close this program'
+        # create a dialog to show log of what's goin on
+        dialog = wx.Dialog(self, id=wx.ID_ANY, title=u"Starting Update...", pos=wx.DefaultPosition, size=wx.DefaultSize,
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        dialog.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
+        dialog.SetFont(wx.Font(10, 70, 90, 90, False, wx.EmptyString))
+        bSizer53 = wx.BoxSizer(wx.VERTICAL)
+        dialog.m_panel22 = wx.Panel(dialog, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer54 = wx.BoxSizer(wx.VERTICAL)
+        bSizer55 = wx.BoxSizer(wx.VERTICAL)
+        dialog.text_notice = wx.TextCtrl(dialog.m_panel22, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                         wx.Size(350, 120), wx.TE_DONTWRAP | wx.TE_MULTILINE | wx.TE_READONLY)
+        bSizer55.Add(dialog.text_notice, 1, wx.ALL | wx.EXPAND, 5)
+        bSizer54.Add(bSizer55, 1, wx.EXPAND, 5)
+        dialog.m_panel22.SetSizer(bSizer54)
+        dialog.m_panel22.Layout()
+        bSizer54.Fit(dialog.m_panel22)
+        bSizer53.Add(dialog.m_panel22, 1, wx.EXPAND | wx.ALL, 5)
+        dialog.SetSizer(bSizer53)
+        dialog.Layout()
+        bSizer53.Fit(dialog)
+        dialog.Centre(wx.BOTH)
+        dialog.Show()
+
+        dialog.text_notice.AppendText('Opening install file... ')
+        wx.Yield()
+
+        try:
+            source_filepath = os.path.join(General.updates_dir, self.install_filename)
+            os.startfile(source_filepath)
+
+        except Exception as e:
+            dialog.text_notice.AppendText('[FAIL]\n')
+            dialog.text_notice.AppendText('ERROR: {}\n'.format(e))
+            dialog.text_notice.AppendText('\nSoftware update failed.\n')
+            wx.Yield()
+            return
+
+        dialog.text_notice.AppendText('[OK]\n')
+        dialog.text_notice.AppendText('Shutting down this program...')
+        wx.Yield()
+        self.Close()
+
+        """try:
+            try:
+                gn.splash_frame.Close()
+            except Exception as e:
+                print 'splash', e
+
+            try:
+                gn.login_frame.Close()
+            except Exception as e:
+                print 'login', e
+
+            try:
+                gn.main_frame.Close()
+            except Exception as e:
+                print 'main', e
+
+            self.Close()
+
+        except Exception as e:
+            dialog.text_notice.AppendText('[FAIL]\n')
+            dialog.text_notice.AppendText('ERROR: {}\n'.format(e))
+            dialog.text_notice.AppendText('\nSoftware update failed.\n')
+            wx.Yield()
+            return"""
+
+    def on_close_frame(self, event):
+        print 'called on_close_frame'
+        self.Destroy()
+
 def get_cleaned_list_headers(list):
     headers = []
     for col in range(list.GetColumnCount()):
@@ -60,6 +219,7 @@ def set_list_headers(list, headers):
     list.DeleteAllColumns()
     for header_index, header in enumerate(headers):
         list.InsertColumn(header_index, header)
+
 
 
 '''
@@ -92,8 +252,8 @@ def sort_list(event):
                         except: pass
                     else:
                         try: value = int(value)
-                        except: pass
             except:
+                        except: pass
                 pass
             
             fields.append(value)
@@ -729,7 +889,7 @@ class ECRevApp(wx.App):
             ctrl(self.close_ecr_dialog, 'label:who_approved_second').SetLabel(who_approved_second)
             ctrl(self.close_ecr_dialog, 'button:approve_2').SetLabel('Unapprove')
 
-        ctrl(self.close_ecr_dialog, 'text:resolution').GetParent().GetSizer().Layout()
+        #ctrl(self.close_ecr_dialog, 'text:resolution').GetParent().GetSizer().Layout()
         self.close_ecr_dialog.Layout()
         self.close_ecr_dialog.Fit()
 
@@ -1086,6 +1246,15 @@ class ECRevApp(wx.App):
 
         cursor = Database.connection.cursor()
 
+        # enable Reopen this ECR button if ECR status is closed and to only original initiator
+
+        ecr_status = cursor.execute('select top 1 status from ecrs where id = {}'.format(modify_ecr_id)).fetchone()[0]
+        ecr_initiator = cursor.execute('select top 1 who_requested from ecrs where id = {}'.format(modify_ecr_id)).fetchone()[0]
+        print ecr_status, ecr_initiator
+        if ecr_status == 'Open' or (ecr_initiator != General.app.current_user):
+            ctrl(self.modify_ecr_dialog, 'm_buttonReopen').Disable()
+
+
         # show committee panel if authorized
         can_approve_first = cursor.execute(
             "SELECT can_approve_first FROM employees WHERE name = '{}'".format(self.current_user)).fetchone()[0]
@@ -1137,6 +1306,7 @@ class ECRevApp(wx.App):
 
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_approve_1_for_modify, id=xrc.XRCID('button:approve_1'))
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_approve_2_for_modify, id=xrc.XRCID('button:approve_2'))
+        self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_Reopen_Ecr, id=xrc.XRCID('m_buttonReopen'))
 
         self.modify_ecr_dialog.Bind(wx.EVT_CHOICE, Ecrs.on_choice_set_severity_default,
                                     id=xrc.XRCID('choice:ecr_document'))
@@ -1558,7 +1728,7 @@ class ECRevApp(wx.App):
 
         ctrl(self.new_revision_dialog, 'label:item_numbers').SetLabel(item_label)
 
-        table_panel = ctrl(self.new_revision_dialog, 'panel:table')
+        table_panel = ctrl(self.new_revision_dialog, 'm_listCtrlRevisions')
 
         table = TweakedGrid.TweakedGrid(table_panel)
         table.Bind(gridlib.EVT_GRID_CELL_LEFT_CLICK, Revisions.on_click_table_cell)
@@ -1598,8 +1768,7 @@ class ECRevApp(wx.App):
         # table.SetColSize(1, table.GetSize()[0])
         # print table.GetColSize(1)
 
-        # sizer.Layout()
-
+        # sizer.Layout()"""
 
         self.new_revision_dialog.ShowModal()
 
@@ -1832,24 +2001,26 @@ if __name__ == '__main__':
 
     try:
         General.app = ECRevApp(False)
-
         Database.connection = Database.connect_to_database()
+        cursor = Database.connection.cursor()
+        General.attachment_directory = cursor.execute("SELECT TOP 1 attachment_directory FROM administration").fetchone()[0]
+        if Database.connection:
+            if check_for_updates() == True:
+                wx.CallAfter(open_software_update_frame)
+                General.app.init_login_frame()
+            General.app.MainLoop()
 
-        if General.check_for_updates(version) == False:
-             Database.connection = Database.connect_to_database()
+    except Exception as e:
+        print 'Failed update check:', e
+
+
+        #if General.check_for_updates(version) == False:
+             #Database.connection = Database.connect_to_database()
 
              #set attachment directory
              #config = ConfigParser.ConfigParser()
              #config.read('ECRev.cfg')
              #General.attachment_directory = config.get('Application', 'attachment_directory')
-
-             cursor = Database.connection.cursor()
-
-             General.attachment_directory = cursor.execute("SELECT TOP 1 attachment_directory FROM administration").fetchone()[0]
-
-             if Database.connection:
-                General.app.init_login_frame()
-                General.app.MainLoop()
 
     except Exception as e:
         # kill off the spash screen if it's still up

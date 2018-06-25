@@ -1094,7 +1094,11 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(department)
         sql += '\'{}\', '.format(General.app.current_user)
         sql += '\'{}\', '.format(General.app.ecr_type)
-        sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+        try:
+            sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+        except:
+            wx.MessageBox('Did you copy paste the description? Please try typing it, some special character causing problems', 'Something Wrong with Description!', wx.ICON_ERROR)
+            return
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{}\', '.format(Prod_Plant)
@@ -1110,8 +1114,13 @@ def on_click_submit_ecr(event):
         sql += '\'{}\', '.format(department)
         sql += '\'{}\', '.format(General.app.current_user)
         sql += '\'{}\', '.format(General.app.ecr_type)
-        sql += '\'{}\', '.format(
-            ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+        #sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+        try:
+            sql += '\'{}\', '.format(ctrl(General.app.new_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"',"''''"))
+        except:
+            wx.MessageBox('Did you copy paste the description of issue? Please try typing it, some special characters causing problems',
+                'Something Wrong with Description!', wx.ICON_ERROR)
+            return
         sql += '\'{}\', '.format(attachment_string)
         sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
         sql += '\'{}\', '.format(Prod_Plant)
@@ -1134,6 +1143,17 @@ def on_activated_ecr(event):
     print(ecr_id)
     if ecr_id != '':
         on_click_open_modify_ecr_form(event)
+
+def on_click_Reopen_Ecr(event):
+    ecr_id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
+    print ecr_id
+    cursor = Database.connection.cursor()
+    if ecr_id != '':
+        sqlreopen = 'UPDATE ecrs SET status = \'Open\' where id = {}'.format(ecr_id)
+        cursor.execute(sqlreopen)
+        Database.connection.commit()
+        wx.MessageBox('ECR Reopned successfully','Please refresh open ECRs list!', wx.OK)
+    General.app.modify_ecr_dialog.Destroy()
 
 def on_click_modify_ecr(event):
     need_by_date = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
@@ -1197,8 +1217,7 @@ def on_click_modify_ecr(event):
 
     sql += 'reason=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection())
     sql += 'document=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_document').GetStringSelection())
-    sql += 'request=\'{}\', '.format(
-        ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+    sql += 'request=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
     sql += 'Units_Affected=\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'm_NoUnitsAffected').GetValue().replace("'", "''").replace('\"', "''''"))
     sql += 'attachment = \'{}\', '.format(new_attachment_string)
     sql += 'when_needed=\'{} 23:59:00\', '.format(need_by_date)

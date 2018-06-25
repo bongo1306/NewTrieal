@@ -14,7 +14,7 @@ import shutil  # for coping files (like app update files)
 
 # global variable hold reference to wxGUI
 app = None
-
+splash_frame = None
 # attachment_directory = r'S:\Everyone\Management Software\ECRev\ecr attachments'
 attachment_directory = None
 
