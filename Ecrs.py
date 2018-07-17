@@ -1149,11 +1149,36 @@ def on_click_Reopen_Ecr(event):
     print ecr_id
     cursor = Database.connection.cursor()
     if ecr_id != '':
-        sqlreopen = 'UPDATE ecrs SET status = \'Open\' where id = {}'.format(ecr_id)
+        sqlolddes = cursor.execute('Select request from ecrs where id = {}'.format(ecr_id)).fetchone()[0]
+        #print sqlolddes
+        sqlnewdes = ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''")
+        if sqlolddes == sqlnewdes:
+            wx.MessageBox('To reopen ECR please change description of issue and mention the reason for reopening', 'Must submit reason for Reopening ECR!', wx.OK)
+            return
+
+        Reopenneedbydate = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
+        #print dt.datetime.today()
+        #print Reopenneedbydate
+        #print dt.datetime.strptime(str(Reopenneedbydate),"%m/%d/%y %H:%M:%S")
+
+        if  dt.datetime.strptime(str(Reopenneedbydate),"%m/%d/%y %H:%M:%S") <= dt.datetime.today():
+            wx.MessageBox('To reopen ECR please select Need by Date later than todays date','Incorrect Need by Date selected!', wx.OK)
+            return
+
+        Reopenneedbydate = dt.date(Reopenneedbydate.GetYear(), Reopenneedbydate.GetMonth() + 1, Reopenneedbydate.GetDay())
+
+        sqlreopen = 'UPDATE ecrs SET status = \'Open\', when_needed=\'{} 23:59:00\', request=\'{}\' where id = {}'.format(Reopenneedbydate, sqlnewdes, ecr_id )
         cursor.execute(sqlreopen)
         Database.connection.commit()
-        wx.MessageBox('ECR Reopned successfully','Please refresh open ECRs list!', wx.OK)
+        wx.MessageBox('ECR Reopned successfully. All ECR lists will refresh now, please have patience. Modify ECR dialog for recently reopened ECR will pop up after you hit OK incase you need to make any changes to the reopened ECR','ECR Reopened Successfully!', wx.OK)
     General.app.modify_ecr_dialog.Destroy()
+    refresh_my_ecrs_list()
+    refresh_open_ecrs_list()
+    refresh_closed_ecrs_list()
+    refresh_my_assigned_ecrs_list()
+    refresh_committee_ecrs_list()
+    populate_ecr_panel(ecr_id)
+    General.app.init_modify_ecr_dialog(ecr_id)
 
 def on_click_modify_ecr(event):
     need_by_date = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
@@ -1607,6 +1632,7 @@ def radio_button_selected(event, type):
             ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
             ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
         else:
+            #cursor.execute("SELECT document FROM ecr_document_choices WHERE ((type=\'{}\' OR type=\'*\') AND Production_Plant = \'{}\' )".format(type, Prod_Plant))
             cursor.execute("SELECT document FROM ecr_document_choices WHERE Production_Plant = \'{}\' ".format(Prod_Plant))
             ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
             ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])

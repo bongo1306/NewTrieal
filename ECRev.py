@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.2'
+version = '9.5'
 
 # extend Python's functionality by importing modules
 import sys
@@ -76,7 +76,7 @@ class SoftwareUpdateFrame(wx.Frame):
         res = xrc.XmlResource(General.resource_path('interface.xrc'))
         res.LoadOnFrame(pre, parent, "frame:software_update")
         self.PostCreate(pre)
-        self.SetIcon(wx.Icon(General.resource_path('ECRev.ico'), wx.BITMAP_TYPE_ICO))
+        #self.SetIcon(wx.Icon(General.resource_path('ECRev.ico'), wx.BITMAP_TYPE_ICO))
 
         # read in update text data
         with open(os.path.join(General.updates_dir, "releases.json")) as file:
@@ -436,8 +436,8 @@ class ECRevApp(wx.App):
             remember_password = config.get('Application', 'remember_password')
             password = config.get('Application', 'password')
             plant = config.get('Application', 'plant')
-            print remember_password
-            print password
+            #print remember_password
+            #print password
 
         if login_name != '':
             ctrl(self.login_frame, 'choice:name').SetStringSelection(login_name)
@@ -1136,15 +1136,11 @@ class ECRevApp(wx.App):
 
             # add reason for request options to choice box
             ##reasons = zip(*cursor.execute("SELECT reason FROM ecr_reason_choices ORDER BY reason ASC").fetchall())[0]
-            reasons = zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[
-                0]
-            user_department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(
-                General.app.current_user)).fetchone()[0]
+            reasons = zip(*cursor.execute("SELECT code FROM secondary_ecr_reason_codes ORDER BY code ASC").fetchall())[0]
+            user_department = cursor.execute('SELECT TOP 1 department FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
             ##reasons_white_list = cursor.execute('SELECT TOP 1 can_choose_which_ecr_reasons FROM departments WHERE department = \'{}\''.format(user_department)).fetchone()[0]
             ##reasons_white_list = reasons_white_list.split('|')
-            reasons_white_list = zip(*cursor.execute(
-                "SELECT code FROM departments_ecr_reason_codes WHERE department = '{}'".format(
-                    user_department)).fetchall())[0]
+            reasons_white_list = zip(*cursor.execute("SELECT code FROM departments_ecr_reason_codes WHERE department = '{}'".format(user_department)).fetchall())[0]
 
             for reason in reasons:
                 if (reason in reasons_white_list):
@@ -1728,7 +1724,7 @@ class ECRevApp(wx.App):
 
         ctrl(self.new_revision_dialog, 'label:item_numbers').SetLabel(item_label)
 
-        table_panel = ctrl(self.new_revision_dialog, 'm_listCtrlRevisions')
+        table_panel = ctrl(self.new_revision_dialog, 'panel:table')
 
         table = TweakedGrid.TweakedGrid(table_panel)
         table.Bind(gridlib.EVT_GRID_CELL_LEFT_CLICK, Revisions.on_click_table_cell)
@@ -1768,7 +1764,7 @@ class ECRevApp(wx.App):
         # table.SetColSize(1, table.GetSize()[0])
         # print table.GetColSize(1)
 
-        # sizer.Layout()"""
+        # sizer.Layout()
 
         self.new_revision_dialog.ShowModal()
 
@@ -2007,7 +2003,7 @@ if __name__ == '__main__':
         if Database.connection:
             if check_for_updates() == True:
                 wx.CallAfter(open_software_update_frame)
-                General.app.init_login_frame()
+            General.app.init_login_frame()
             General.app.MainLoop()
 
     except Exception as e:

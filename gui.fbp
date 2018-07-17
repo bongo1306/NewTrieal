@@ -13928,8 +13928,8 @@
             <property name="minimum_size"></property>
             <property name="name">dialog:select_revision_document</property>
             <property name="pos"></property>
-            <property name="size">320,360</property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</property>
+            <property name="size">720,540</property>
+            <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass"></property>
             <property name="title">Which document?</property>
             <property name="tooltip"></property>
@@ -14026,7 +14026,7 @@
                         <property name="resize">Resizable</property>
                         <property name="show">1</property>
                         <property name="size"></property>
-                        <property name="style">wxTR_DEFAULT_STYLE</property>
+                        <property name="style">wxTR_HIDE_ROOT|wxTR_NO_BUTTONS|wxTR_SINGLE</property>
                         <property name="subclass"></property>
                         <property name="toolbar_pane">0</property>
                         <property name="tooltip"></property>
@@ -14099,8 +14099,8 @@
             <property name="minimum_size"></property>
             <property name="name">dialog:new_revision</property>
             <property name="pos"></property>
-            <property name="size">650,430</property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</property>
+            <property name="size">1024,720</property>
+            <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass"></property>
             <property name="title">New Document Revision</property>
             <property name="tooltip"></property>
@@ -14143,7 +14143,7 @@
             <event name="OnSetFocus"></event>
             <event name="OnSize"></event>
             <event name="OnUpdateUI"></event>
-            <object class="wxBoxSizer" expanded="1">
+            <object class="wxBoxSizer" expanded="0">
                 <property name="minimum_size"></property>
                 <property name="name">bSizer89</property>
                 <property name="orient">wxVERTICAL</property>
@@ -14252,20 +14252,20 @@
                         </object>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="1">
+                    <object class="wxBoxSizer" expanded="0">
                         <property name="minimum_size"></property>
                         <property name="name">bSizer911</property>
                         <property name="orient">wxVERTICAL</property>
                         <property name="permission">none</property>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
-                            <property name="flag">wxALL|wxEXPAND</property>
+                            <property name="flag">wxEXPAND | wxALL</property>
                             <property name="proportion">1</property>
-                            <object class="wxListCtrl" expanded="1">
+                            <object class="wxPanel" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -14300,7 +14300,7 @@
                                 <property name="minimize_button">0</property>
                                 <property name="minimum_size"></property>
                                 <property name="moveable">1</property>
-                                <property name="name">m_listCtrlRevisions</property>
+                                <property name="name">panel:table</property>
                                 <property name="pane_border">1</property>
                                 <property name="pane_position"></property>
                                 <property name="pane_size"></property>
@@ -14310,17 +14310,12 @@
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
                                 <property name="size"></property>
-                                <property name="style">wxLC_HRULES|wxLC_ICON|wxLC_REPORT|wxLC_VRULES</property>
-                                <property name="subclass">BetterListCtrl.BetterListCtrl; </property>
+                                <property name="subclass"></property>
                                 <property name="toolbar_pane">0</property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
-                                <property name="window_style"></property>
+                                <property name="window_style">wxTAB_TRAVERSAL</property>
                                 <event name="OnChar"></event>
                                 <event name="OnEnterWindow"></event>
                                 <event name="OnEraseBackground"></event>
@@ -14331,26 +14326,6 @@
                                 <event name="OnLeftDClick"></event>
                                 <event name="OnLeftDown"></event>
                                 <event name="OnLeftUp"></event>
-                                <event name="OnListBeginDrag"></event>
-                                <event name="OnListBeginLabelEdit"></event>
-                                <event name="OnListBeginRDrag"></event>
-                                <event name="OnListCacheHint"></event>
-                                <event name="OnListColBeginDrag"></event>
-                                <event name="OnListColClick"></event>
-                                <event name="OnListColDragging"></event>
-                                <event name="OnListColEndDrag"></event>
-                                <event name="OnListColRightClick"></event>
-                                <event name="OnListDeleteAllItems"></event>
-                                <event name="OnListDeleteItem"></event>
-                                <event name="OnListEndLabelEdit"></event>
-                                <event name="OnListInsertItem"></event>
-                                <event name="OnListItemActivated"></event>
-                                <event name="OnListItemDeselected"></event>
-                                <event name="OnListItemFocused"></event>
-                                <event name="OnListItemMiddleClick"></event>
-                                <event name="OnListItemRightClick"></event>
-                                <event name="OnListItemSelected"></event>
-                                <event name="OnListKeyDown"></event>
                                 <event name="OnMiddleDClick"></event>
                                 <event name="OnMiddleDown"></event>
                                 <event name="OnMiddleUp"></event>
