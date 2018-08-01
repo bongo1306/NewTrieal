@@ -1223,6 +1223,13 @@ class ECRevApp(wx.App):
         self.new_ecr_dialog.ShowModal()
         self.new_ecr_dialog = None
 
+    def init_workflow_dialog(self):
+        self.workflow_dialog = self.res.LoadDialog(None, 'dialog:workflow')
+        # Bind Assign Workflow Button to an event to pop up Workflow Dialog
+        self.workflow_dialog.Bind(wx.EVT_BUTTON, Ecrs.get_workflow_steps, id=xrc.XRCID('m_buttonOK'))
+        self.workflow_dialog.ShowModal()
+
+
     def init_modify_ecr_dialog(self, modify_ecr_id):
         if modify_ecr_id == '':
             return
@@ -1249,6 +1256,61 @@ class ECRevApp(wx.App):
         print ecr_status, ecr_initiator
         if ecr_status == 'Open' or (ecr_initiator != General.app.current_user):
             ctrl(self.modify_ecr_dialog, 'm_buttonReopen').Disable()
+
+        #Bind Assign Workflow Button to an event to pop up Workflow Dialog
+        self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_assign_workflow, id=xrc.XRCID('m_buttonAssign'))
+
+        #Disable Workflow Assign button if it has already been assigned
+        try:
+            workflow_exists = cursor.execute('Select top 1 step_no from Ecrev_Status where Ecrev_no =?',modify_ecr_id).fetchone()[0]
+            if workflow_exists:
+                workflow = True
+        except:
+            workflow = False
+
+        if workflow:
+            ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Disable()
+            workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',modify_ecr_id).fetchall()
+
+            ctrl(General.app.modify_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
+            ctrl(General.app.modify_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
+            ctrl(General.app.modify_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
+            ctrl(General.app.modify_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
+            ctrl(General.app.modify_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
+
+            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
+            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
+            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
+            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
+            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
+
+            if workflow_info[0][2] == 'Completed':
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetValue(True)
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
+
+            if workflow_info[1][2] == 'Completed':
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetValue(True)
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
+
+            if workflow_info[2][2] == 'Completed':
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetValue(True)
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
+
+            if workflow_info[3][2] == 'Completed':
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetValue(True)
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
+
+            if workflow_info[4][2] == 'Completed':
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetValue(True)
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+
+
+        #Bind Workflow step status checkbox event
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep1'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep2'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep3'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep4'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep5'))
 
 
         # show committee panel if authorized
@@ -1498,6 +1560,7 @@ class ECRevApp(wx.App):
 
         ctrl(self.modify_ecr_dialog, 'button:modify_or_close_ecr').SetLabel('Save Changes')
 
+
         # ctrl(self.modify_ecr_dialog, 'panel:main').Layout()
         # ctrl(self.modify_ecr_dialog, 'panel:main').Refresh()
         # ctrl(self.modify_ecr_dialog, 'panel:main').Update()
@@ -1611,6 +1674,7 @@ class ECRevApp(wx.App):
 
         self.main_frame.Bind(wx.EVT_DATE_CHANGED, Reports.on_change_date, id=xrc.XRCID('date:report_start'))
         self.main_frame.Bind(wx.EVT_DATE_CHANGED, Reports.on_change_date, id=xrc.XRCID('date:report_end'))
+        self.main_frame.Bind(wx.EVT_BUTTON, Reports.Advanced_Report, id=xrc.XRCID('m_buttonAdReport'))
 
         self.main_frame.Bind(wx.EVT_LISTBOX, Reports.on_select_report, id=xrc.XRCID('listbox:reports'))
 

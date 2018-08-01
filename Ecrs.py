@@ -930,6 +930,9 @@ def on_click_open_modify_ecr_form(event):
 def on_click_open_new_ecr_form(event):
     General.app.init_new_ecr_dialog()
 
+def on_click_assign_workflow(event):
+    General.app.init_workflow_dialog()
+
 
 def on_click_open_duplicate_ecr_form(event):
     ecr_id = ctrl(General.app.main_frame, 'label:ecr_panel_id').GetLabel()
@@ -1149,26 +1152,93 @@ def on_click_Reopen_Ecr(event):
     print ecr_id
     cursor = Database.connection.cursor()
     if ecr_id != '':
-        sqlolddes = cursor.execute('Select request from ecrs where id = {}'.format(ecr_id)).fetchone()[0]
+        Reopenecr = cursor.execute('SELECT * FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()
+        sqlolddes = Reopenecr[8]
+        sqloldresolution = Reopenecr[9]
+        item_number = Reopenecr[3]
         #print sqlolddes
         sqlnewdes = ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''")
         if sqlolddes == sqlnewdes:
             wx.MessageBox('To reopen ECR please change description of issue and mention the reason for reopening', 'Must submit reason for Reopening ECR!', wx.OK)
             return
 
-        Reopenneedbydate = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
+        """Reopenneedbydate = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
         #print dt.datetime.today()
-        #print Reopenneedbydate
+        print Reopenneedbydate
         #print dt.datetime.strptime(str(Reopenneedbydate),"%m/%d/%y %H:%M:%S")
+        print str(dt.datetime.today())[:19]
 
         if  dt.datetime.strptime(str(Reopenneedbydate),"%m/%d/%y %H:%M:%S") <= dt.datetime.today():
             wx.MessageBox('To reopen ECR please select Need by Date later than todays date','Incorrect Need by Date selected!', wx.OK)
             return
 
-        Reopenneedbydate = dt.date(Reopenneedbydate.GetYear(), Reopenneedbydate.GetMonth() + 1, Reopenneedbydate.GetDay())
+        Reopenneedbydate = dt.date(Reopenneedbydate.GetYear(), Reopenneedbydate.GetMonth() + 1, Reopenneedbydate.GetDay())"""
+        New_id = cursor.execute("SELECT MAX(id) FROM ecrs").fetchone()[0] + 1
 
-        sqlreopen = 'UPDATE ecrs SET status = \'Open\', when_needed=\'{} 23:59:00\', request=\'{}\' where id = {}'.format(Reopenneedbydate, sqlnewdes, ecr_id )
-        cursor.execute(sqlreopen)
+        #sqlreopen = 'UPDATE ecrs SET status = \'Open\', when_requested = \'{}\', when_needed=\'{} 23:59:00\', request=\'{}\' where id = {}'.format(str(dt.datetime.today())[:19],Reopenneedbydate, sqlnewdes, ecr_id )
+        if item_number != None:
+            sql = 'INSERT INTO ecrs (id, status, reference_number, item, document, reason, department, type, request, attachment, who_requested,' \
+                  'when_requested, when_needed, Production_Plant, Units_Affected) ' \
+                  'VALUES ('
+            sql += '{}, '.format(New_id)
+            sql += '\'Open\', '
+            sql += '\'{}\', '.format(Reopenecr[2])
+            sql += '\'{}\', '.format(Reopenecr[3])
+            sql += '\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_document').GetStringSelection())
+            sql += '\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection())
+            sql += '\'{}\', '.format(Reopenecr[6])
+            sql += '\'{}\', '.format(General.app.ecr_type)
+            try:
+                if len(Reopenecr[9]) >= 1:
+                    sql += '\'{}\', '.format((ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"',"''''"))
+                                             + "\n\n" + 'With Respect to ECR_id {}'.format(ecr_id) + "\n" + Reopenecr[9])
+                else:
+                    sql += '\'{}\', '.format((ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"',"''''"))
+                                             + "\n\n" + 'With Respect to ECR_id {}'.format(ecr_id))
+            except:
+                wx.MessageBox('Did you copy paste the description? Please try typing it, some special character causing problems',
+                    'Something Wrong with Description!', wx.ICON_ERROR)
+                return
+
+            sql += '\'{}\', '.format(Reopenecr[10])
+            sql += '\'{}\', '.format(General.app.current_user)
+            sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
+            sql += '\'{} \', '.format(str(dt.datetime.today() + dt.timedelta(days=1))[:19])
+            sql += '\'{}\', '.format(Prod_Plant)
+            sql += '\'{}\' )'.format(Reopenecr[31])
+        else:
+            sql = 'INSERT INTO ecrs (id, status, reference_number,document, reason, department, type, request, attachment, who_requested,' \
+                  'when_requested, when_needed, Production_Plant, Units_Affected) ' \
+                  'VALUES ('
+            sql += '{}, '.format(New_id)
+            sql += '\'Open\', '
+            sql += '\'{}\', '.format(Reopenecr[2])
+            sql += '\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_document').GetStringSelection())
+            sql += '\'{}\', '.format(ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection())
+            sql += '\'{}\', '.format(Reopenecr[6])
+            sql += '\'{}\', '.format(General.app.ecr_type)
+            try:
+                if len(Reopenecr[9]) >= 1:
+                    sql += '\'{}\', '.format((ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"', "''''"))
+                                             + "\n\n" + 'With Respect to ECR_id {}'.format(ecr_id) + "\n" + Reopenecr[9])
+                else:
+                    sql += '\'{}\', '.format((ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"',"''''"))
+                                             + "\n\n" + 'With Respect to ECR_id {}'.format(ecr_id))
+            except:
+                wx.MessageBox('Did you copy paste the description? Please try typing it, some special character causing problems',
+                    'Something Wrong with Description!', wx.ICON_ERROR)
+                return
+
+            sql += '\'{}\', '.format(Reopenecr[10])
+            sql += '\'{}\', '.format(General.app.current_user)
+            sql += '\'{}\', '.format(str(dt.datetime.today())[:19])
+            sql += '\'{} \', '.format(str(dt.datetime.today() + dt.timedelta(days=1))[:19])
+            sql += '\'{}\', '.format(Prod_Plant)
+            sql += '\'{}\') '.format(Reopenecr[31])
+
+            print str(dt.datetime.today() + dt.timedelta(days=1))[:19]
+
+        cursor.execute(sql)
         Database.connection.commit()
         wx.MessageBox('ECR Reopned successfully. All ECR lists will refresh now, please have patience. Modify ECR dialog for recently reopened ECR will pop up after you hit OK incase you need to make any changes to the reopened ECR','ECR Reopened Successfully!', wx.OK)
     General.app.modify_ecr_dialog.Destroy()
@@ -1178,7 +1248,7 @@ def on_click_Reopen_Ecr(event):
     refresh_my_assigned_ecrs_list()
     refresh_committee_ecrs_list()
     populate_ecr_panel(ecr_id)
-    General.app.init_modify_ecr_dialog(ecr_id)
+    General.app.init_modify_ecr_dialog(New_id)
 
 def on_click_modify_ecr(event):
     need_by_date = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
@@ -1320,6 +1390,100 @@ def on_click_modify_ecr(event):
     populate_ecr_panel(ecr_id)
 
     General.app.modify_ecr_dialog.Destroy()
+
+def get_workflow_steps(event):
+    Answer1 = ctrl(General.app.workflow_dialog, 'choice:production').GetStringSelection()
+    Answer2 = ctrl(General.app.workflow_dialog, 'choice:manu').GetStringSelection()
+    Answer3 = ctrl(General.app.workflow_dialog, 'choice:part').GetStringSelection()
+    Answer4 = ctrl(General.app.workflow_dialog, 'choice:paint').GetStringSelection()
+    Answer5 = ctrl(General.app.workflow_dialog, 'choice:conversion').GetStringSelection()
+    Answer6 = ctrl(General.app.workflow_dialog, 'choice:Q6').GetStringSelection()
+    selections = [Answer1, Answer2, Answer3, Answer4, Answer5, Answer6]
+    #print selections
+    cursor = Database.connection.cursor()
+    q = []
+    cursor.execute('select Step_description, Who FROM ' +
+        'decision_matrix dm join workflow_Steps wfs on wfs.scenario_no = dm.scenario_no ' +
+        'where dM.Q1 = ? ' +
+        ' AND dM.Q2 = ? ' +
+        ' AND dM.Q3 = ? ' +
+        ' AND dM.Q4 = ? ' +
+        ' AND dM.Q5 = ? ' +
+        ' AND DM.Q6 = ? ', selections)
+    steps = cursor.fetchone()
+    while steps:
+        q.append(steps)
+        #print('Steps = %r' % (q,))
+        steps = cursor.fetchone()
+    #print q
+    Steps = []
+    Assignedto = []
+
+    for i in range(len(q)):
+        Steps.append(q[i][0])
+        Assignedto.append(q[i][1])
+
+    #Set the workflow Steps Description and Person on Modify Ecrs form
+    ctrl(General.app.modify_ecr_dialog, 'm_textStep1').SetValue(q[0][0])
+    ctrl(General.app.modify_ecr_dialog, 'm_textStep2').SetValue(q[1][0])
+    ctrl(General.app.modify_ecr_dialog, 'm_textStep3').SetValue(q[2][0])
+    ctrl(General.app.modify_ecr_dialog, 'm_textStep4').SetValue(q[3][0])
+    ctrl(General.app.modify_ecr_dialog, 'm_textStep5').SetValue(q[4][0])
+
+    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho1').SetValue(q[0][1])
+    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').SetValue(q[1][1])
+    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').SetValue(q[2][1])
+    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(q[3][1])
+    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(q[4][1])
+
+    ecr_id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
+
+    for s in range(len(Steps)):
+        if s == 0:
+            cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, time_created, created_by, time_assigned) values (?,?,?,?,?, current_timestamp,?,current_timestamp)', ecr_id,s+1,Steps[s],Assignedto[s],'Email Sent', General.app.current_user)
+        else:
+            cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, time_created, created_by) values (?,?,?,?,?, current_timestamp,?)',
+                ecr_id, s + 1, Steps[s], Assignedto[s], 'Pending', General.app.current_user)
+        Database.connection.commit()
+
+    #Inserted in ECRev Status Send EMAIL TO 1ST PERSON ASSIGNED!!
+    reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(Assignedto[0])).fetchone()[0]
+    sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    Thread(target=send_workflow_email, args=(ecr_id, 1, Steps[0],sender, reciever)).start()
+
+    General.app.workflow_dialog.Destroy()
+
+def assign_ecrev_workflow_next_step(event):
+    ecrev_no = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
+
+    print "HEY"
+
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').GetValue() == True:
+        step_no = 1
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').GetValue() == True:
+        step_no = 2
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').GetValue() == True:
+        step_no = 3
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').GetValue() == True:
+        step_no = 4
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').GetValue() == True:
+        step_no = 5
+
+    print step_no
+
+    cursor = Database.connection.cursor()
+
+    cursor.execute('Update Ecrev_Status SET completed_by = ?, time_complete = current_timestamp, current_Status = ? where Ecrev_no = ? and step_no = ?',General.app.current_user,'Completed',ecrev_no,step_no)
+    Database.connection.commit()
+
+    if step_no != 5:
+        cursor.execute('Update Ecrev_Status SET current_Status = ?, time_assigned = current_timestamp where Ecrev_no = ? and step_no = ?','Email Sent', ecrev_no, step_no+1)
+        Database.connection.commit()
+
+        dbquery = cursor.execute('Select Assigned_to, Step_description from Ecrev_Status where Ecrev_no =? and step_no = ?',ecrev_no,step_no+1).fetchone()
+        reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(dbquery[0])).fetchone()[0]
+        sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+        Thread(target=send_workflow_email, args=(ecrev_no, step_no+1, dbquery[1], sender, reciever)).start()
 
 
 def on_click_add_revisions_with_ecr(event):
@@ -2646,6 +2810,39 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
 
     try:
         server.sendmail(sender, reciever, msg.as_string())
+    except Exception, e:
+        wx.MessageBox('Unable to send email. Error: {}'.format(e), 'An error occurred!', wx.OK | wx.ICON_ERROR)
+
+    server.close()
+
+def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver):
+    server = smtplib.SMTP('mailrelay.lennoxintl.com')
+
+    msg = MIMEMultipart()
+    msg["From"] = sender
+    msg["To"] = receiver
+    msg["Subject"] = 'Assigned Workflow Step No {} with respect to ecr_id {}'.format(step_no,ecr_id)
+    msg['Date'] = formatdate(localtime=True)
+
+    # size="3"
+    body_html = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>
+        <font face=\"arial\">
+        <table border="0">
+        <tr><td align=\"right\">Ecr&nbsp;Number:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Step&nbsp;Number:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Step&nbsp;Description:&nbsp;</td><td>{}</td></tr>
+        </table>
+        '''.format(ecr_id, step_no, step_desc)
+
+    body = MIMEMultipart('alternative')
+    body.attach(MIMEText(body_html, 'html'))
+
+    #body = "Ecr No:    {}".format(ecr_id) + "\n" + "Step No:    {}".format(step_no) + "\n" + "Step Description:    {}".format(step_desc)
+    msg.attach(body)
+
+    #print msg
+    try:
+        server.sendmail(sender, receiver, msg.as_string())
     except Exception, e:
         wx.MessageBox('Unable to send email. Error: {}'.format(e), 'An error occurred!', wx.OK | wx.ICON_ERROR)
 

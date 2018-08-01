@@ -1162,3 +1162,11 @@ def plot_demo(event):
     #import matplotlib.pyplot as plt
     #plt.savefig('common_labels.png', dpi=300)
 '''
+
+
+#def on_click_Advanced_Report(event):
+ #   startdate = ctrl(self.main_frame, 'date:report_start')
+  #  enddate =
+
+def Advanced_Report(event, startdate,enddate):
+    print "Yo"
