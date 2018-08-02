@@ -1451,6 +1451,7 @@ def get_workflow_steps(event):
     sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
     Thread(target=send_workflow_email, args=(ecr_id, 1, Steps[0],sender, reciever)).start()
 
+    ctrl(General.app.modify_ecr_dialog, 'm_buttonAssign').Disable()
     General.app.workflow_dialog.Destroy()
 
 def assign_ecrev_workflow_next_step(event):
@@ -2816,23 +2817,26 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
     server.close()
 
 def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver):
-    server = smtplib.SMTP('mailrelay.lennoxintl.com')
+    server = smtplib.SMTP('mailrelay.lennoxintl.com', 25)
 
     msg = MIMEMultipart()
     msg["From"] = sender
     msg["To"] = receiver
-    msg["Subject"] = 'Assigned Workflow Step No {} with respect to ecr_id {}'.format(step_no,ecr_id)
+    msg["Subject"] = 'Assigned Workflow Step Number: {}, Step Description {}'.format(step_no,ecr_id)
     msg['Date'] = formatdate(localtime=True)
 
     # size="3"
     body_html = '''<style type=\"text/css\">td{{font-family:Arial; color:black; font-size:12pt;}}</style>
         <font face=\"arial\">
+        You have been assigned Workflow Step No {} with respect to Ecr_id {}<br><br>
+        <hr>
         <table border="0">
         <tr><td align=\"right\">Ecr&nbsp;Number:&nbsp;</td><td>{}</td></tr>
         <tr><td align=\"right\">Step&nbsp;Number:&nbsp;</td><td>{}</td></tr>
         <tr><td align=\"right\">Step&nbsp;Description:&nbsp;</td><td>{}</td></tr>
         </table>
-        '''.format(ecr_id, step_no, step_desc)
+        <hr>
+        '''.format(step_no,ecr_id, ecr_id, step_no, step_desc)
 
     body = MIMEMultipart('alternative')
     body.attach(MIMEText(body_html, 'html'))
@@ -2846,7 +2850,7 @@ def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver):
     except Exception, e:
         wx.MessageBox('Unable to send email. Error: {}'.format(e), 'An error occurred!', wx.OK | wx.ICON_ERROR)
 
-    server.close()
+    server.quit()
 
 
 def send_similar_items_email(order_data, ecr_data, similar_items_data, recievers, sender):
