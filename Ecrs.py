@@ -1436,15 +1436,23 @@ def get_workflow_steps(event):
     ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(q[3][1])
     ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(q[4][1])
 
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetLabel('Email Sent')
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Pending')
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Pending')
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Pending')
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Pending')
+
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
+    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+
     ecr_id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
 
     for s in range(len(Steps)):
-        if s == 0:
-            cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, time_created, created_by, time_assigned) values (?,?,?,?,?, current_timestamp,?,current_timestamp)', ecr_id,s+1,Steps[s],Assignedto[s],'Email Sent', General.app.current_user)
-        else:
-            cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, time_created, created_by) values (?,?,?,?,?, current_timestamp,?)',
+       cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, time_created, created_by) values (?,?,?,?,?, current_timestamp,?)',
                 ecr_id, s + 1, Steps[s], Assignedto[s], 'Pending', General.app.current_user)
-        Database.connection.commit()
+    Database.connection.commit()
 
     #Inserted in ECRev Status Send EMAIL TO 1ST PERSON ASSIGNED!!
     reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(Assignedto[0])).fetchone()[0]
@@ -1457,18 +1465,38 @@ def get_workflow_steps(event):
 def assign_ecrev_workflow_next_step(event):
     ecrev_no = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
 
-    print "HEY"
-
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').GetValue() == True:
         step_no = 1
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetLabel('Completed')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Email Sent')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Enable()
+
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').GetValue() == True:
         step_no = 2
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Completed')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Email Sent')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Enable()
+
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').GetValue() == True:
         step_no = 3
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Completed')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Email Sent')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Enable()
+
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').GetValue() == True:
         step_no = 4
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Completed')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Email Sent')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Enable()
+
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').GetValue() == True:
         step_no = 5
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Completed')
 
     print step_no
 
@@ -1478,7 +1506,7 @@ def assign_ecrev_workflow_next_step(event):
     Database.connection.commit()
 
     if step_no != 5:
-        cursor.execute('Update Ecrev_Status SET current_Status = ?, time_assigned = current_timestamp where Ecrev_no = ? and step_no = ?','Email Sent', ecrev_no, step_no+1)
+        cursor.execute('Update Ecrev_Status SET time_assigned = current_timestamp where Ecrev_no = ? and step_no = ?', ecrev_no, step_no+1)
         Database.connection.commit()
 
         dbquery = cursor.execute('Select Assigned_to, Step_description from Ecrev_Status where Ecrev_no =? and step_no = ?',ecrev_no,step_no+1).fetchone()
@@ -2822,7 +2850,7 @@ def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver):
     msg = MIMEMultipart()
     msg["From"] = sender
     msg["To"] = receiver
-    msg["Subject"] = 'Assigned Workflow Step Number: {}, Step Description {}'.format(step_no,ecr_id)
+    msg["Subject"] = 'Assigned Workflow Step Number: {}, With Respect to Ecr_id {}'.format(step_no,ecr_id)
     msg['Date'] = formatdate(localtime=True)
 
     # size="3"
@@ -2847,8 +2875,19 @@ def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver):
     #print msg
     try:
         server.sendmail(sender, receiver, msg.as_string())
+
+        #update status in database
+        cursor = Database.connection.cursor()
+        cursor.execute('Update Ecrev_Status Set current_status = ? where Ecrev_no = ? and step_no = ?', 'Email Sent', ecr_id, step_no)
+        Database.connection.commit()
+
+        #Give user a message box notification of email sent
+        wx.MessageBox('Step Number {} assigned to {} and Email notification has been sent to {}'.format(step_no, receiver,receiver),'Next person notified by Email',
+            wx.OK)
+
     except Exception, e:
         wx.MessageBox('Unable to send email. Error: {}'.format(e), 'An error occurred!', wx.OK | wx.ICON_ERROR)
+
 
     server.quit()
 

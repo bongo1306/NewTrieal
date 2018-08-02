@@ -5218,6 +5218,7 @@
 															<object class="wxTextCtrl" name="m_textStep1">
 																<style>wxTE_READONLY</style>
 																<size>500,-1</size>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5236,6 +5237,7 @@
 															<border>5</border>
 															<object class="wxTextCtrl" name="m_textCtrlWho1">
 																<style>wxTE_READONLY</style>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5273,6 +5275,7 @@
 															<object class="wxTextCtrl" name="m_textStep2">
 																<style>wxTE_READONLY</style>
 																<size>500,-1</size>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5291,6 +5294,7 @@
 															<border>5</border>
 															<object class="wxTextCtrl" name="m_textCtrlWho2">
 																<style>wxTE_READONLY</style>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5328,6 +5332,7 @@
 															<object class="wxTextCtrl" name="m_textStep3">
 																<style>wxTE_READONLY</style>
 																<size>500,-1</size>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5346,6 +5351,7 @@
 															<border>5</border>
 															<object class="wxTextCtrl" name="m_textCtrlWho3">
 																<style>wxTE_READONLY</style>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5383,6 +5389,7 @@
 															<object class="wxTextCtrl" name="m_textStep4">
 																<style>wxTE_READONLY</style>
 																<size>500,-1</size>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5401,6 +5408,7 @@
 															<border>5</border>
 															<object class="wxTextCtrl" name="m_textCtrlWho4">
 																<style>wxTE_READONLY</style>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5438,6 +5446,7 @@
 															<object class="wxTextCtrl" name="m_textStep5">
 																<style>wxTE_READONLY</style>
 																<size>500,-1</size>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
@@ -5456,6 +5465,7 @@
 															<border>5</border>
 															<object class="wxTextCtrl" name="m_textCtrlWho5">
 																<style>wxTE_READONLY</style>
+																<bg>#f0f0f0</bg>
 																<value></value>
 															</object>
 														</object>
