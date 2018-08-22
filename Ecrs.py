@@ -1817,9 +1817,9 @@ def populate_ecr_panel(id):
 
 
 def radio_button_selected(event, type):
+    cursor = Database.connection.cursor()
     if General.app.new_ecr_dialog:
         # add document options to choice box based on ecr type selected
-        cursor = Database.connection.cursor()
         if Prod_Plant == 'Systems':
             cursor.execute("SELECT document FROM ecr_document_choices WHERE ((type=\'{}\' OR type=\'*\') AND Production_Plant = \'{}\' )".format(type,Prod_Plant))
             ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
@@ -1829,6 +1829,51 @@ def radio_button_selected(event, type):
             cursor.execute("SELECT document FROM ecr_document_choices WHERE Production_Plant = \'{}\' ".format(Prod_Plant))
             ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').Clear()
             ctrl(General.app.new_ecr_dialog, 'choice:ecr_document').AppendItems(zip(*cursor.fetchall())[0])
+
+    if General.app.modify_ecr_dialog:
+        if type == 'Other':
+            components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' ".format(Prod_Plant)).fetchall())[0])
+            sub_systems = list(zip(*cursor.execute(
+                "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' ".format(
+                    Prod_Plant)).fetchall())[0])
+        else:
+            components = list(zip(*cursor.execute("SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' AND discipline= \'{}\'".format(Prod_Plant, type)).fetchall())[0])
+            sub_systems = list(zip(*cursor.execute(
+                "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(
+                    Prod_Plant, type)).fetchall())[0])
+
+        components.insert(0, '')
+        ctrl(General.app.modify_ecr_dialog, 'choice:ecr_component').Clear()
+        ctrl(General.app.modify_ecr_dialog, 'choice:ecr_component').AppendItems(components)
+
+        sub_systems.insert(0, '')
+        ctrl(General.app.modify_ecr_dialog, 'choice:ecr_sub_system').Clear()
+        ctrl(General.app.modify_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_systems)
+
+    if General.app.close_ecr_dialog:
+        if type == 'Other':
+            components = list(zip(*cursor.execute(
+                "SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' ".format(
+                    Prod_Plant)).fetchall())[0])
+            sub_systems = list(zip(*cursor.execute(
+                "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' ".format(
+                    Prod_Plant)).fetchall())[0])
+        else:
+            components = list(zip(*cursor.execute(
+                "SELECT DISTINCT component FROM ecr.components WHERE Production_Plant = \'{}\' AND discipline= \'{}\'".format(
+                    Prod_Plant, type)).fetchall())[0])
+            sub_systems = list(zip(*cursor.execute(
+                "SELECT DISTINCT sub_system FROM ecr.sub_systems WHERE Production_Plant = \'{}\' AND discipline=\'{}\'".format(
+                    Prod_Plant, type)).fetchall())[0])
+
+        components.insert(0, '')
+        ctrl(General.app.close_ecr_dialog, 'choice:ecr_component').Clear()
+        ctrl(General.app.close_ecr_dialog, 'choice:ecr_component').AppendItems(components)
+
+        sub_systems.insert(0, '')
+        ctrl(General.app.close_ecr_dialog, 'choice:ecr_sub_system').Clear()
+        ctrl(General.app.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_systems)
+
     General.app.ecr_type = type
     # print 'good!'
 

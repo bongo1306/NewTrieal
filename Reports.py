@@ -7,7 +7,8 @@ from wx.calendar import *
 ctrl = xrc.XRCCTRL  # define a shortined function name (just for convienience)
 
 # from datetime import date, timedelta
-
+import os
+from win32com.client import Dispatch
 import datetime as dt
 from dateutil.relativedelta import relativedelta
 import time
@@ -448,7 +449,7 @@ class EcrsClosedOnTime(PlotPanel):
             "SELECT when_needed, when_closed FROM ecrs WHERE when_closed>\'{}\' AND when_closed<\'{}\' AND Production_Plant = \'{}\' ORDER BY when_closed ASC".format(
                 self.start_date, '{} 23:59:59'.format(self.end_date), Ecrs.Prod_Plant)).fetchall()
         # self.ecr_data = cursor.execute("SELECT when_needed, when_closed FROM ecrs WHERE reason <> 'BOM Reconciliation' AND when_closed>\'{}\' AND when_closed<\'{}\' ORDER BY when_closed ASC".format(self.start_date, '{} 23:59:59'.format(self.end_date))).fetchall()
-        print self.ecr_data
+        #print self.ecr_data
 
         self.lowest_start_date = end_date
         for ecr in self.ecr_data:
@@ -1168,5 +1169,138 @@ def plot_demo(event):
  #   startdate = ctrl(self.main_frame, 'date:report_start')
   #  enddate =
 
-def Advanced_Report(event, startdate,enddate):
-    print "Yo"
+def Advanced_Report(event):
+    LoopStopDummy = False
+    LoopStop = False
+
+    ResultGrid = []
+
+    Headers = ["Date ID", "Year", "Week", "Period", "Start Day", "End Day","Engg Error ECRs Closed On Time","Total Engg Error ECRs",
+               "% of Total Engg Error ECRs Closed on Time","Total ECRs Closed On Time","Total ECRs","% of Total ECRs Closed on Time"]
+    ColumnCount = len(Headers)
+
+    Date_Start = ctrl(General.app.main_frame, 'date:report_start').GetValue()
+    Date_End = ctrl(General.app.main_frame, 'date:report_end').GetValue()
+
+    Date_Loop_Start = dt.datetime.strptime(str(Date_Start), "%m/%d/%y %H:%M:%S")
+    Date_Main_End = dt.datetime.strptime(str(Date_End), "%m/%d/%y %H:%M:%S")
+    print Date_Main_End
+
+    if Date_Loop_Start > Date_Main_End:
+        wx.MessageBox("Date Start cannot be greater than Date End", "Check Dates", wx.OK | wx.ICON_INFORMATION)
+        return
+
+    cursor = Database.connection.cursor()
+
+    Date_NextLoop_Start = Date_Loop_Start
+
+    while LoopStop == False:
+        for i in range(0, 7):
+            DateNext = Date_Loop_Start + dt.timedelta(i + 1)
+            NextWeekDayNo = DateNext.weekday()
+            if DateNext == Date_Main_End:
+                #Date_Loop_End = DateNext
+                LoopStopDummy = True
+            else:
+                if NextWeekDayNo == 5:
+                    Date_Loop_End = DateNext
+                    #print Date_Loop_End
+                    #print Date_Loop_End.isocalendar()[1]
+                if NextWeekDayNo == 6:
+                    Date_NextLoop_Start = DateNext
+                    #print Date_NextLoop_Start
+        if LoopStopDummy == True:
+            Date_Loop_End = Date_Main_End
+
+        Year = Date_Loop_Start.year
+        Period = Date_Loop_Start.month
+        Week = str(Year % 2000) + "/" + str(Date_Loop_Start.isocalendar()[1])
+        DateID = str(Year) + "-" + str(Period) + "-" + str(Week)
+
+        ecr_data = cursor.execute("SELECT when_needed, when_closed FROM ecrs WHERE when_closed>\'{}\' AND when_closed<\'{}\' AND Production_Plant = \'{}\' "
+            "ORDER BY when_closed ASC".format(str(Date_Loop_Start.strftime("%m/%d/%Y")), '{} 23:59:59'.format(str(Date_Loop_End.strftime("%m/%d/%Y"))),
+                                              Ecrs.Prod_Plant)).fetchall()
+
+
+        # when closed
+        x = [dt.datetime.strptime(str(p[1]), "%Y-%m-%d %H:%M:%S") for p in ecr_data]
+
+        when_needed_list = [dt.datetime.strptime(str(p[0]), "%Y-%m-%d %H:%M:%S") for p in ecr_data]
+
+        on_time_sum = 0.0
+        prct_on_time = 0
+
+        for index, when_closed in enumerate(x):
+            if when_closed <= when_needed_list[index]:
+                on_time_sum += 1
+        try:
+            prct_on_time = (on_time_sum / len(ecr_data)) * 100
+        except:
+            prct_on_time = 0
+
+
+        ecr_data_EE = cursor.execute("SELECT when_needed, when_closed FROM ecrs WHERE when_closed>\'{}\' AND when_closed<\'{}\' AND reason = \'Engineering Error\' "
+                                     "AND Production_Plant = \'{}\' "
+            "ORDER BY when_closed ASC".format(str(Date_Loop_Start.strftime("%m/%d/%Y")), '{} 23:59:59'.format(str(Date_Loop_End.strftime("%m/%d/%Y"))),
+                                              Ecrs.Prod_Plant)).fetchall()
+
+        x = [dt.datetime.strptime(str(p[1]), "%Y-%m-%d %H:%M:%S") for p in ecr_data_EE]
+
+        when_needed_list = [dt.datetime.strptime(str(p[0]), "%Y-%m-%d %H:%M:%S") for p in ecr_data_EE]
+
+        on_time_sum_EE = 0.0
+        prct_on_time_EE = 0
+
+        for index, when_closed in enumerate(x):
+            if when_closed <= when_needed_list[index]:
+                on_time_sum_EE += 1
+        try:
+            prct_on_time_EE = (on_time_sum_EE / len(ecr_data_EE)) * 100
+        except:
+            prct_on_time_EE = 0
+
+
+        ResultGrid.append([str(DateID),str(Year),str(Week),str(Period), str(Date_Loop_Start),str(Date_Loop_End), str(on_time_sum_EE),str(len(ecr_data_EE)),str(prct_on_time_EE),
+                           str(on_time_sum),str(len(ecr_data)),str(prct_on_time)])
+
+
+        Date_Loop_Start = Date_NextLoop_Start
+        LoopStop = LoopStopDummy
+
+        print Date_Loop_End
+
+
+    excel = Dispatch('Excel.Application')
+    excel.Visible = True
+    wb = excel.Workbooks.Add()
+
+    wb.ActiveSheet.Cells(1, 1).Value = 'Transferring data to Excel...'
+    wb.ActiveSheet.Columns(1).AutoFit()
+
+    R = len(ResultGrid)
+    C = ColumnCount
+
+    # Write the header
+    excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(1, 1), wb.ActiveSheet.Cells(1, C))
+    excel_range.Value = Headers
+
+    # Write the main results
+    excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(2, 1), wb.ActiveSheet.Cells(R + 1, C))
+    excel_range.Value = ResultGrid
+
+    # Write the footers (totals)
+    # excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(R+2, 1),wb.ActiveSheet.Cells(R+2,C))
+    # excel_range.Value = self.Footers
+
+    # Autofit the columns
+    excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(1, 1), wb.ActiveSheet.Cells(1, C))
+    excel_range.Font.Bold = True
+
+    # Autofit the columns
+    excel_range = wb.ActiveSheet.Range(wb.ActiveSheet.Cells(1, 1), wb.ActiveSheet.Cells(R + 2, C))
+    excel_range.Columns.AutoFit()
+
+
+
+
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.5'
+version = '9.6'
 
 # extend Python's functionality by importing modules
 import sys
@@ -134,7 +134,7 @@ class SoftwareUpdateFrame(wx.Frame):
         self.Close()
 
     def on_click_update(self, event):
-        #General.app.login_frame.Destroy()
+        General.app.login_frame.Destroy()
         print 'copy install file over, open it, and close this program'
         # create a dialog to show log of what's goin on
         dialog = wx.Dialog(self, id=wx.ID_ANY, title=u"Starting Update...", pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -624,6 +624,16 @@ class ECRevApp(wx.App):
         ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
         ctrl(self.close_ecr_dialog, 'choice:who_errored').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
         ctrl(self.close_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+
+        # Hide workflow and Reopen Button for now until it is ready for release
+        ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
+        ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
+        ctrl(self.close_ecr_dialog, 'm_buttonReopen').Hide()
+
+        # Hide Assign Workflow Button if user in Systems Plant
+        if Ecrs.Prod_Plant == 'Systems':
+            ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
+            ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
 
         cursor = Database.connection.cursor()
 
@@ -1259,6 +1269,15 @@ class ECRevApp(wx.App):
 
         #Bind Assign Workflow Button to an event to pop up Workflow Dialog
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_assign_workflow, id=xrc.XRCID('m_buttonAssign'))
+
+        #Hide workflow for now until it is ready for release
+        ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
+        ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
+
+        #Hide Assign Workflow Button if user in Systems Plant
+        if Ecrs.Prod_Plant == 'Systems':
+            ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
+            ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
 
         #Disable Workflow Assign button if it has already been assigned
         try:
