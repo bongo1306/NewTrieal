@@ -5700,7 +5700,7 @@
 	</object>
 	<object class="wxDialog" name="dialog:workflow">
 		<style>wxDEFAULT_DIALOG_STYLE</style>
-		<size>362,536</size>
+		<size>500,500</size>
 		<title>Workflow Questions</title>
 		<centered>1</centered>
 		<object class="wxBoxSizer">
@@ -5715,8 +5715,9 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText151">
-							<label>Is it inside production window?</label>
+						<object class="wxStaticText" name="WQST1">
+							<hidden>1</hidden>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -5724,12 +5725,11 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxChoice" name="choice:production">
-							<selection>0</selection>
-							<content>
-								<item>YES</item>
-								<item>NO</item>
-							</content>
+						<object class="wxComboBox" name="WQChoice1">
+							<style>wxCB_DROPDOWN|wxCB_READONLY</style>
+							<hidden>1</hidden>
+							<value></value>
+							<content />
 						</object>
 					</object>
 				</object>
@@ -5744,8 +5744,9 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText142">
-							<label>Is it Fab or a manuf part?</label>
+						<object class="wxStaticText" name="WQST2">
+							<hidden>1</hidden>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -5753,12 +5754,11 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxChoice" name="choice:manu">
-							<selection>0</selection>
-							<content>
-								<item>YES</item>
-								<item>NO</item>
-							</content>
+						<object class="wxComboBox" name="WQChoice2">
+							<style>wxCB_DROPDOWN|wxCB_READONLY</style>
+							<hidden>1</hidden>
+							<value></value>
+							<content />
 						</object>
 					</object>
 				</object>
@@ -5773,8 +5773,9 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="label:part">
-							<label>Is the part available?</label>
+						<object class="wxStaticText" name="WQST3">
+							<hidden>1</hidden>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -5782,12 +5783,10 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxChoice" name="choice:part">
-							<selection>0</selection>
-							<content>
-								<item>YES</item>
-								<item>NO</item>
-							</content>
+						<object class="wxChoice" name="WQChoice3">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
 						</object>
 					</object>
 				</object>
@@ -5802,8 +5801,9 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText144">
-							<label>If manufactured, is it painted?</label>
+						<object class="wxStaticText" name="WQST4">
+							<hidden>1</hidden>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -5811,12 +5811,10 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxChoice" name="choice:paint">
-							<selection>0</selection>
-							<content>
-								<item>YES</item>
-								<item>NO</item>
-							</content>
+						<object class="wxChoice" name="WQChoice4">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
 						</object>
 					</object>
 				</object>
@@ -5831,8 +5829,9 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText145">
-							<label>Conversion 2, 3, or none?</label>
+						<object class="wxStaticText" name="WQST5">
+							<hidden>1</hidden>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -5840,13 +5839,10 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxChoice" name="choice:conversion">
-							<selection>0</selection>
-							<content>
-								<item>TWO</item>
-								<item>THREE</item>
-								<item>NONE</item>
-							</content>
+						<object class="wxChoice" name="WQChoice5">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
 						</object>
 					</object>
 				</object>
@@ -5861,8 +5857,9 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText1451">
-							<label>Can change be made through selections?</label>
+						<object class="wxStaticText" name="WQST6">
+							<hidden>1</hidden>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -5870,12 +5867,122 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxChoice" name="choice:Q6">
-							<selection>0</selection>
-							<content>
-								<item>YES</item>
-								<item>NO</item>
-							</content>
+						<object class="wxChoice" name="WQChoice6">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="WQST7">
+							<hidden>1</hidden>
+							<label></label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxChoice" name="WQChoice7">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="WQST8">
+							<hidden>1</hidden>
+							<label></label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxChoice" name="WQChoice8">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="WQST9">
+							<hidden>1</hidden>
+							<label></label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxChoice" name="WQChoice9">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="WQST10">
+							<hidden>1</hidden>
+							<label></label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxChoice" name="WQChoice10">
+							<hidden>1</hidden>
+							<selection>1</selection>
+							<content />
 						</object>
 					</object>
 				</object>

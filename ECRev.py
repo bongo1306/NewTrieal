@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.6'
+version = '9.8'
 
 # extend Python's functionality by importing modules
 import sys
@@ -626,16 +626,51 @@ class ECRevApp(wx.App):
         ctrl(self.close_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
         # Hide workflow and Reopen Button for now until it is ready for release
-        ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
-        ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
+        #ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
+        ctrl(self.close_ecr_dialog, 'm_buttonAssign').Disable()
         ctrl(self.close_ecr_dialog, 'm_buttonReopen').Hide()
+
+        cursor = Database.connection.cursor()
 
         # Hide Assign Workflow Button if user in Systems Plant
         if Ecrs.Prod_Plant == 'Systems':
             ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
             ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
 
-        cursor = Database.connection.cursor()
+        workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',close_ecr_id).fetchall()
+
+        ctrl(General.app.close_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
+        ctrl(General.app.close_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
+        ctrl(General.app.close_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
+        ctrl(General.app.close_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
+        ctrl(General.app.close_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
+
+        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
+        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
+        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
+        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
+        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
+
+        if workflow_info[0][2] == 'Completed':
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetValue(True)
+        ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
+
+        if workflow_info[1][2] == 'Completed':
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetValue(True)
+        ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
+
+        if workflow_info[2][2] == 'Completed':
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetValue(True)
+        ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
+
+        if workflow_info[3][2] == 'Completed':
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetValue(True)
+        ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
+
+        if workflow_info[4][2] == 'Completed':
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetValue(True)
+        ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
+
 
         # show committee panel if authorized
         can_approve_first = cursor.execute(
@@ -1235,6 +1270,112 @@ class ECRevApp(wx.App):
 
     def init_workflow_dialog(self):
         self.workflow_dialog = self.res.LoadDialog(None, 'dialog:workflow')
+
+        self.wq = cursor.execute('Select Question from Workflow_Questions').fetchall()
+        self.wqa = cursor.execute('Select Answers from Workflow_Questions').fetchall()
+        self.C1 = []
+        self.C2 = []
+        self.C3 = []
+        self.C4 = []
+        self.C5 = []
+        self.C6 = []
+        self.C7 = []
+        self.C8 = []
+        self.C9 = []
+        self.C10 = []
+
+        for i in range(len(self.wq)):
+            if i == 0:
+                ctrl(self.workflow_dialog, 'WQST1').Show()
+                ctrl(self.workflow_dialog, 'WQST1').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice1').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice1').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C1 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice1').SetItems(self.C1)
+
+            elif i == 1:
+                ctrl(self.workflow_dialog, 'WQST2').Show()
+                ctrl(self.workflow_dialog, 'WQST2').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice2').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice2').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C2 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice2').SetItems(self.C2)
+
+            elif i == 2:
+                ctrl(self.workflow_dialog, 'WQST3').Show()
+                ctrl(self.workflow_dialog, 'WQST3').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice3').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice3').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C3 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice3').SetItems(self.C3)
+
+            elif i == 3:
+                ctrl(self.workflow_dialog, 'WQST4').Show()
+                ctrl(self.workflow_dialog, 'WQST4').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice4').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice4').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C4 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice4').SetItems(self.C4)
+
+            elif i == 4:
+                ctrl(self.workflow_dialog, 'WQST5').Show()
+                ctrl(self.workflow_dialog, 'WQST5').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice5').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice5').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C5 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice5').SetItems(self.C5)
+
+            elif i == 5:
+                ctrl(self.workflow_dialog, 'WQST6').Show()
+                ctrl(self.workflow_dialog, 'WQST6').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice6').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice6').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C6 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice6').SetItems(self.C6)
+
+            elif i == 6:
+                ctrl(self.workflow_dialog, 'WQST7').Show()
+                ctrl(self.workflow_dialog, 'WQST7').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice7').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice7').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C7 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice7').SetItems(self.C7)
+
+            elif i == 7:
+                ctrl(self.workflow_dialog, 'WQST8').Show()
+                ctrl(self.workflow_dialog, 'WQST8').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice8').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice8').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C8 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice8').SetItems(self.C8)
+
+            elif i == 8:
+                ctrl(self.workflow_dialog, 'WQST9').Show()
+                ctrl(self.workflow_dialog, 'WQST9').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice9').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice9').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C9 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice9').SetItems(self.C9)
+
+            elif i == 9:
+                ctrl(self.workflow_dialog, 'WQST10').Show()
+                ctrl(self.workflow_dialog, 'WQST10').SetLabel(str(self.wq[i][0]))
+                ctrl(self.workflow_dialog, 'WQChoice10').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+                ctrl(self.workflow_dialog, 'WQChoice10').Show()
+                self.my_string = str(self.wqa[i][0])
+                self.C10 = [self.x.strip() for self.x in self.my_string.split(',')]
+                ctrl(self.workflow_dialog, 'WQChoice10').SetItems(self.C10)
+
+
         # Bind Assign Workflow Button to an event to pop up Workflow Dialog
         self.workflow_dialog.Bind(wx.EVT_BUTTON, Ecrs.get_workflow_steps, id=xrc.XRCID('m_buttonOK'))
         self.workflow_dialog.ShowModal()
@@ -1271,8 +1412,8 @@ class ECRevApp(wx.App):
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_assign_workflow, id=xrc.XRCID('m_buttonAssign'))
 
         #Hide workflow for now until it is ready for release
-        ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
-        ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
+        #ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
+        #ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
 
         #Hide Assign Workflow Button if user in Systems Plant
         if Ecrs.Prod_Plant == 'Systems':

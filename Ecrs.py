@@ -651,6 +651,12 @@ def on_click_claim_ecr(event):
 
 
 def on_click_close_ecr(event):
+    if ctrl(General.app.close_ecr_dialog, 'm_checkStep5').GetValue() != True:
+        wx.MessageBox(
+            'You cannot close an ECR without all of its Workflow Step being marked Completed',
+            'Workflow Process not Completed', wx.OK | wx.ICON_WARNING)
+        return
+
     if ctrl(General.app.close_ecr_dialog, 'choice:ecr_reason').GetStringSelection() == 'Engineering Error':
         if ctrl(General.app.close_ecr_dialog, 'choice:who_errored').GetStringSelection() == '':
             wx.MessageBox('Since this is an Engineering Error, you must select who errored before closing the ECR.',
@@ -782,13 +788,23 @@ def on_click_close_ecr(event):
     if component != '':
         sql += "component='{}', ".format(component.replace("'", "''").replace('\"', "''''"))
     else:
-        sql += "component=NULL, "
+        if Prod_Plant == 'Cases':
+            wx.MessageBox('ECR could not be closed without selecting both Component and Sub-System',
+                          'Please select a Component and Sub-System from dropdowns', wx.OK | wx.ICON_ERROR)
+            return
+        else:
+            sql += "component=NULL, "
 
     sub_system = ctrl(General.app.close_ecr_dialog, 'choice:ecr_sub_system').GetStringSelection()
     if sub_system != '':
         sql += "sub_system='{}', ".format(sub_system.replace("'", "''").replace('\"', "''''"))
     else:
-        sql += "sub_system=NULL, "
+        if Prod_Plant == 'Cases':
+            wx.MessageBox('ECR could not be closed without selecting both Component and Sub-System',
+                          'Please select a Component and Sub-System from dropdowns', wx.OK | wx.ICON_ERROR)
+            return
+        else:
+            sql += "sub_system=NULL, "
 
     severity = ctrl(General.app.close_ecr_dialog, 'choice:ecr_severity').GetStringSelection()
     if severity == 'High':
@@ -1392,12 +1408,12 @@ def on_click_modify_ecr(event):
     General.app.modify_ecr_dialog.Destroy()
 
 def get_workflow_steps(event):
-    Answer1 = ctrl(General.app.workflow_dialog, 'choice:production').GetStringSelection()
-    Answer2 = ctrl(General.app.workflow_dialog, 'choice:manu').GetStringSelection()
-    Answer3 = ctrl(General.app.workflow_dialog, 'choice:part').GetStringSelection()
-    Answer4 = ctrl(General.app.workflow_dialog, 'choice:paint').GetStringSelection()
-    Answer5 = ctrl(General.app.workflow_dialog, 'choice:conversion').GetStringSelection()
-    Answer6 = ctrl(General.app.workflow_dialog, 'choice:Q6').GetStringSelection()
+    Answer1 = ctrl(General.app.workflow_dialog, 'WQChoice1').GetStringSelection()
+    Answer2 = ctrl(General.app.workflow_dialog, 'WQChoice2').GetStringSelection()
+    Answer3 = ctrl(General.app.workflow_dialog, 'WQChoice3').GetStringSelection()
+    Answer4 = ctrl(General.app.workflow_dialog, 'WQChoice4').GetStringSelection()
+    Answer5 = ctrl(General.app.workflow_dialog, 'WQChoice5').GetStringSelection()
+    Answer6 = ctrl(General.app.workflow_dialog, 'WQChoice6').GetStringSelection()
     selections = [Answer1, Answer2, Answer3, Answer4, Answer5, Answer6]
     #print selections
     cursor = Database.connection.cursor()
@@ -1418,6 +1434,7 @@ def get_workflow_steps(event):
     #print q
     Steps = []
     Assignedto = []
+    print q
 
     for i in range(len(q)):
         Steps.append(q[i][0])
@@ -1457,7 +1474,32 @@ def get_workflow_steps(event):
     #Inserted in ECRev Status Send EMAIL TO 1ST PERSON ASSIGNED!!
     reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(Assignedto[0])).fetchone()[0]
     sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
-    Thread(target=send_workflow_email, args=(ecr_id, 1, Steps[0],sender, reciever)).start()
+
+    ecr = cursor.execute('SELECT TOP 1 reference_number, request, resolution, item FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()
+    order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
+
+    if order != None:
+        order_directory = OrderFileOpeners.get_order_directory(order[1])
+
+        if order_directory:
+            shortcuts = '<a href=\"file:///{}\">Open Order Folder</a>'.format(order_directory)
+        else:
+            shortcuts = ""
+
+        item_number = order[0]
+        sales_order = '{}-{}'.format(order[1], order[2])
+        customer = order[5]
+        location = '{}, {}'.format(order[8], order[9])
+        model = order[11]
+    else:
+        shortcuts = ""
+        item_number = ""
+        sales_order = ""
+        customer = ""
+        location = ""
+        model = ""
+
+    Thread(target=send_workflow_email, args=(ecr_id, 1, Steps[0],sender, reciever, shortcuts,item_number,sales_order,customer,location,model, ecr)).start()
 
     ctrl(General.app.modify_ecr_dialog, 'm_buttonAssign').Disable()
     General.app.workflow_dialog.Destroy()
@@ -1498,7 +1540,6 @@ def assign_ecrev_workflow_next_step(event):
         ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
         ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Completed')
 
-    print step_no
 
     cursor = Database.connection.cursor()
 
@@ -1508,11 +1549,37 @@ def assign_ecrev_workflow_next_step(event):
     if step_no != 5:
         cursor.execute('Update Ecrev_Status SET time_assigned = current_timestamp where Ecrev_no = ? and step_no = ?', ecrev_no, step_no+1)
         Database.connection.commit()
+        ecr = cursor.execute('SELECT TOP 1 reference_number, request, resolution, item FROM ecrs WHERE id = \'{}\''.format(ecrev_no)).fetchone()
+        order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
+        if order != None:
+            order_directory = OrderFileOpeners.get_order_directory(order[1])
+
+            if order_directory:
+                shortcuts = '<a href=\"file:///{}\">Open Order Folder</a>'.format(order_directory)
+            else:
+                shortcuts = ""
+
+            item_number = order[0]
+            sales_order = '{}-{}'.format(order[1], order[2])
+            customer = order[5]
+            location = '{}, {}'.format(order[8], order[9])
+            model = order[11]
+        else:
+            shortcuts = ""
+            item_number = ""
+            sales_order = ""
+            customer = ""
+            location = ""
+            model = ""
 
         dbquery = cursor.execute('Select Assigned_to, Step_description from Ecrev_Status where Ecrev_no =? and step_no = ?',ecrev_no,step_no+1).fetchone()
         reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(dbquery[0])).fetchone()[0]
         sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
-        Thread(target=send_workflow_email, args=(ecrev_no, step_no+1, dbquery[1], sender, reciever)).start()
+        Thread(target=send_workflow_email, args=(ecrev_no, step_no+1, dbquery[1], sender, reciever, shortcuts,item_number,sales_order,customer,location,model, ecr)).start()
+    else:
+        wx.MessageBox('Since you marked the last step of Workflow process as completed, this ECR will need to be closed by you now','ECR Closure Needed Notice', wx.OK)
+        General.app.modify_ecr_dialog.Destroy()
+        General.app.init_close_ecr_dialog(ecrev_no)
 
 
 def on_click_add_revisions_with_ecr(event):
@@ -2889,7 +2956,7 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
 
     server.close()
 
-def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver):
+def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver, shortcuts,item_number,sales_order,customer,location,model, ecr):
     server = smtplib.SMTP('mailrelay.lennoxintl.com', 25)
 
     msg = MIMEMultipart()
@@ -2909,7 +2976,22 @@ def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver):
         <tr><td align=\"right\">Step&nbsp;Description:&nbsp;</td><td>{}</td></tr>
         </table>
         <hr>
-        '''.format(step_no,ecr_id, ecr_id, step_no, step_desc)
+        {}
+        <hr>
+        <table border="0">
+        <tr><td align=\"right\">Item&nbsp;Number:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Sales&nbsp;Order:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Customer:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Location:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\">Model:&nbsp;</td><td>{}</td></tr>
+        </table>
+        <hr>
+        <table border="0">
+        <tr><td align=\"right\">RefNo:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\" valign=\"top\">Request:&nbsp;</td><td>{}</td></tr>
+        <tr><td align=\"right\" valign=\"top\">Resolution:&nbsp;</td><td>{}</td></tr>
+        </table>
+        '''.format(step_no,ecr_id, ecr_id, step_no, step_desc, shortcuts, item_number, sales_order, customer, location, model, ecr[0], ecr[1], ecr[2])
 
     body = MIMEMultipart('alternative')
     body.attach(MIMEText(body_html, 'html'))
