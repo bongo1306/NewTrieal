@@ -286,7 +286,12 @@ def on_click_submit_revision(event):
 
             # send out popsheet notices especially!
             if revision[2] == 'Pop Sheet':
-                Thread(target=send_popsheet_email, args=(revision, order, popsheet_email_list, sender)).start()
+                PO_No = cursor.execute('Select item from ecrs where id = \'{}\''.format(related_ecr)).fetchone()
+                print PO_No
+                Programmer = cursor.execute('Select Programming from orders.target_dates where Production_Number = \'{}\''.format(PO_No)).fetchone()
+                print Programmer
+                if Programmer == 'Purchase':
+                    Thread(target=send_popsheet_email, args=(revision, order, popsheet_email_list, sender)).start()
 
             # check if BOM was uploaded if revision done on it
             # if revision[2] == 'BOM':

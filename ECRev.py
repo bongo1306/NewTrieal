@@ -626,7 +626,9 @@ class ECRevApp(wx.App):
         ctrl(self.close_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
         # Hide workflow and Reopen Button for now until it is ready for release
-        #ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
+        ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
+        ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
+
         ctrl(self.close_ecr_dialog, 'm_buttonAssign').Disable()
         ctrl(self.close_ecr_dialog, 'm_buttonReopen').Hide()
 
@@ -637,39 +639,54 @@ class ECRevApp(wx.App):
             ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
             ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
 
-        workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',close_ecr_id).fetchall()
+        try:
+            workflow_exists = cursor.execute('Select top 1 step_no from Ecrev_Status where Ecrev_no =?',close_ecr_id).fetchone()[0]
+            if workflow_exists:
+                workflow = True
+        except:
+            workflow = False
 
-        ctrl(General.app.close_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
-        ctrl(General.app.close_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
-        ctrl(General.app.close_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
-        ctrl(General.app.close_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
-        ctrl(General.app.close_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
+        if workflow:
+            workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',close_ecr_id).fetchall()
+            print "Yass"
+            ctrl(General.app.close_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
+            ctrl(General.app.close_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
+            ctrl(General.app.close_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
+            ctrl(General.app.close_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
+            ctrl(General.app.close_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
 
-        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
-        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
-        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
-        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
-        ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
+            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
+            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
+            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
+            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
+            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
 
-        if workflow_info[0][2] == 'Completed':
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetValue(True)
-        ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
+            if workflow_info[0][2] == 'Completed':
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetValue(True)
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
 
-        if workflow_info[1][2] == 'Completed':
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetValue(True)
-        ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
+            if workflow_info[1][2] == 'Completed':
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetValue(True)
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
 
-        if workflow_info[2][2] == 'Completed':
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetValue(True)
-        ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
+            if workflow_info[2][2] == 'Completed':
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetValue(True)
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
 
-        if workflow_info[3][2] == 'Completed':
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetValue(True)
-        ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
+            if workflow_info[3][2] == 'Completed':
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetValue(True)
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
 
-        if workflow_info[4][2] == 'Completed':
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetValue(True)
-        ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
+            if workflow_info[4][2] == 'Completed':
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetValue(True)
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
+        else:
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
+
 
 
         # show committee panel if authorized
@@ -1412,8 +1429,8 @@ class ECRevApp(wx.App):
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_assign_workflow, id=xrc.XRCID('m_buttonAssign'))
 
         #Hide workflow for now until it is ready for release
-        #ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
-        #ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
+        ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
+        ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
 
         #Hide Assign Workflow Button if user in Systems Plant
         if Ecrs.Prod_Plant == 'Systems':

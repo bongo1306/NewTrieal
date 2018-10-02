@@ -651,11 +651,19 @@ def on_click_claim_ecr(event):
 
 
 def on_click_close_ecr(event):
-    if ctrl(General.app.close_ecr_dialog, 'm_checkStep5').GetValue() != True:
-        wx.MessageBox(
-            'You cannot close an ECR without all of its Workflow Step being marked Completed',
-            'Workflow Process not Completed', wx.OK | wx.ICON_WARNING)
-        return
+    cursor = Database.connection.cursor()
+    id = General.app.close_ecr_dialog.GetTitle().split(' ')[-1]
+    try:
+        workflow_exists = cursor.execute('Select top 1 step_no from Ecrev_Status where Ecrev_no =?', id).fetchone()[0]
+        if workflow_exists:
+            workflow = True
+    except:
+        workflow = False
+
+    if workflow:
+        if ctrl(General.app.close_ecr_dialog, 'm_checkStep5').GetValue() != True:
+            wx.MessageBox('You cannot close an ECR without all of its Workflow Step being marked Completed','Workflow Process not Completed', wx.OK | wx.ICON_WARNING)
+            return
 
     if ctrl(General.app.close_ecr_dialog, 'choice:ecr_reason').GetStringSelection() == 'Engineering Error':
         if ctrl(General.app.close_ecr_dialog, 'choice:who_errored').GetStringSelection() == '':
@@ -682,7 +690,6 @@ def on_click_close_ecr(event):
     need_by_date = ctrl(General.app.close_ecr_dialog, 'calendar:ecr_need_by').GetDate()
     need_by_date = dt.date(need_by_date.GetYear(), need_by_date.GetMonth() + 1, need_by_date.GetDay())
 
-    cursor = Database.connection.cursor()
 
     # department = cursor.execute('SELECT department FROM employees WHERE name = \'{}\' LAMIT 1'.format(General.app.current_user)).fetchone()[0]
 
@@ -723,7 +730,6 @@ def on_click_close_ecr(event):
         '\"', "''''")
     who_closed = General.app.current_user
     when_closed = str(dt.datetime.today())[:19]
-    id = General.app.close_ecr_dialog.GetTitle().split(' ')[-1]
     who_approved_first = ctrl(General.app.close_ecr_dialog, 'label:who_approved_first').GetLabel()
     who_approved_second = ctrl(General.app.close_ecr_dialog, 'label:who_approved_second').GetLabel()
     priority = ctrl(General.app.close_ecr_dialog, 'spin:priority').GetValue()
