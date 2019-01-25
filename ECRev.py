@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.8'
+version = '9.9'
 
 # extend Python's functionality by importing modules
 import sys
@@ -626,11 +626,11 @@ class ECRevApp(wx.App):
         ctrl(self.close_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
         # Hide workflow and Reopen Button for now until it is ready for release
-        ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
-        ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
+        #ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
+        #ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
 
-        ctrl(self.close_ecr_dialog, 'm_buttonAssign').Disable()
-        ctrl(self.close_ecr_dialog, 'm_buttonReopen').Hide()
+        #ctrl(self.close_ecr_dialog, 'm_buttonAssign').Disable()
+        #ctrl(self.close_ecr_dialog, 'm_buttonReopen').Hide()
 
         cursor = Database.connection.cursor()
 
@@ -648,46 +648,116 @@ class ECRevApp(wx.App):
 
         if workflow:
             workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',close_ecr_id).fetchall()
-            print "Yass"
-            ctrl(General.app.close_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
-            ctrl(General.app.close_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
-            ctrl(General.app.close_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
-            ctrl(General.app.close_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
-            ctrl(General.app.close_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
 
-            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
-            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
-            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
-            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
-            ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
+            if len(workflow_info) >=1:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetLabel(workflow_info[0][2])
 
-            if workflow_info[0][2] == 'Completed':
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetValue(True)
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
+                if workflow_info[0][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Enable()
 
-            if workflow_info[1][2] == 'Completed':
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetValue(True)
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
+                if workflow_info[0][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
 
-            if workflow_info[2][2] == 'Completed':
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetValue(True)
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
+            if len(workflow_info) >= 2:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetLabel(workflow_info[1][2])
 
-            if workflow_info[3][2] == 'Completed':
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetValue(True)
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
+                if workflow_info[1][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Enable()
 
-            if workflow_info[4][2] == 'Completed':
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetValue(True)
-            ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
+                if workflow_info[1][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
+
+            if len(workflow_info) >= 3:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetLabel(workflow_info[2][2])
+
+                if workflow_info[2][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Enable()
+
+                if workflow_info[2][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
+
+            if len(workflow_info) >= 4:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetLabel(workflow_info[3][2])
+
+                if workflow_info[3][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Enable()
+
+                if workflow_info[3][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
+
+            if len(workflow_info) >= 5:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetLabel(workflow_info[4][2])
+
+                if workflow_info[4][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Enable()
+
+                if workflow_info[4][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
+
+            if len(workflow_info) >= 6:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep6').SetValue(workflow_info[5][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho6').SetValue(workflow_info[5][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep6').SetLabel(workflow_info[5][2])
+
+                if workflow_info[5][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep6').Enable()
+
+                if workflow_info[5][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep6').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep6').Disable()
+
+            if len(workflow_info) >= 7:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep7').SetValue(workflow_info[6][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho7').SetValue(workflow_info[6][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep7').SetLabel(workflow_info[6][2])
+
+                if workflow_info[6][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep7').Enable()
+
+                if workflow_info[6][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep7').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep7').Disable()
+
+            if len(workflow_info) >= 8:
+                ctrl(General.app.close_ecr_dialog, 'm_textStep8').SetValue(workflow_info[7][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho8').SetValue(workflow_info[7][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep8').SetLabel(workflow_info[7][2])
+
+                if workflow_info[7][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep8').Enable()
+
+                if workflow_info[7][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep8').SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep8').Disable()
+
+            if len(workflow_info) < 8:
+                for r in range(len(workflow_info)+1,9):
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep{}'.format(r)).Disable()
+
         else:
             ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
             ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
             ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
             ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
             ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
-
-
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep6').Disable()
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep7').Disable()
+            ctrl(General.app.close_ecr_dialog, 'm_checkStep8').Disable()
 
         # show committee panel if authorized
         can_approve_first = cursor.execute(
@@ -1429,8 +1499,8 @@ class ECRevApp(wx.App):
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_assign_workflow, id=xrc.XRCID('m_buttonAssign'))
 
         #Hide workflow for now until it is ready for release
-        ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
-        ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
+        #ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
+        #ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
 
         #Hide Assign Workflow Button if user in Systems Plant
         if Ecrs.Prod_Plant == 'Systems':
@@ -1449,37 +1519,115 @@ class ECRevApp(wx.App):
             ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Disable()
             workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',modify_ecr_id).fetchall()
 
-            ctrl(General.app.modify_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
-            ctrl(General.app.modify_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
-            ctrl(General.app.modify_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
-            ctrl(General.app.modify_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
-            ctrl(General.app.modify_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
+            if len(workflow_info) >= 1:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetLabel(workflow_info[0][2])
 
-            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
-            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
-            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
-            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
-            ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
+                if workflow_info[0][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Enable()
 
-            if workflow_info[0][2] == 'Completed':
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetValue(True)
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
+                if workflow_info[0][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
 
-            if workflow_info[1][2] == 'Completed':
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetValue(True)
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
+            if len(workflow_info) >= 2:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel(workflow_info[1][2])
 
-            if workflow_info[2][2] == 'Completed':
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetValue(True)
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
+                if workflow_info[1][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Enable()
 
-            if workflow_info[3][2] == 'Completed':
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetValue(True)
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
+                if workflow_info[1][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
 
-            if workflow_info[4][2] == 'Completed':
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetValue(True)
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+            if len(workflow_info) >= 3:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel(workflow_info[2][2])
+
+                if workflow_info[2][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Enable()
+
+                if workflow_info[2][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
+
+            if len(workflow_info) >= 4:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel(workflow_info[3][2])
+
+                if workflow_info[3][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Enable()
+
+                if workflow_info[3][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
+
+            if len(workflow_info) >= 5:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel(workflow_info[4][2])
+
+                if workflow_info[4][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Enable()
+
+                if workflow_info[4][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+
+            if len(workflow_info) >= 6:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep6').SetValue(workflow_info[5][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho6').SetValue(workflow_info[5][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').SetLabel(workflow_info[5][2])
+
+                if workflow_info[5][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Enable()
+
+                if workflow_info[5][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Disable()
+
+            if len(workflow_info) >= 7:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep7').SetValue(workflow_info[6][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho7').SetValue(workflow_info[6][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').SetLabel(workflow_info[6][2])
+
+                if workflow_info[6][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Enable()
+
+                if workflow_info[6][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Disable()
+
+            if len(workflow_info) >= 8:
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep8').SetValue(workflow_info[7][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho8').SetValue(workflow_info[7][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').SetLabel(workflow_info[7][2])
+
+                if workflow_info[7][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Enable()
+
+                if workflow_info[7][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Disable()
+
+            if len(workflow_info) < 8:
+                for r in range(len(workflow_info)+1,9):
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(r)).Disable()
+
+        else:
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Disable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Disable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Disable()
 
 
         #Bind Workflow step status checkbox event
@@ -1488,7 +1636,9 @@ class ECRevApp(wx.App):
         self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep3'))
         self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep4'))
         self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep5'))
-
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep6'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep7'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep8'))
 
         # show committee panel if authorized
         can_approve_first = cursor.execute(

@@ -2,7 +2,7 @@
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
 	<object class="wxFrame" name="frame:main">
 		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
-		<size>1003,780</size>
+		<size>1131,780</size>
 		<font>
 			<size>10</size>
 			<style>normal</style>
@@ -4630,8 +4630,8 @@
 		</object>
 	</object>
 	<object class="wxDialog" name="dialog:edit_ecr">
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
-		<size>1024,1024</size>
+		<style>wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxRESIZE_BORDER</style>
+		<size>1376,1024</size>
 		<font>
 			<size>10</size>
 			<style>normal</style>
@@ -5225,7 +5225,7 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textStep1">
 																			<style>wxTE_READONLY</style>
-																			<size>500,-1</size>
+																			<size>900,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
 																		</object>
@@ -5235,6 +5235,7 @@
 																		<flag>wxALL</flag>
 																		<border>5</border>
 																		<object class="wxCheckBox" name="m_checkStep1">
+																			<enabled>0</enabled>
 																			<label>Step1 Status</label>
 																			<checked>0</checked>
 																		</object>
@@ -5245,18 +5246,9 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textCtrlWho1">
 																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
-																		</object>
-																	</object>
-																	<object class="sizeritem">
-																		<option>0</option>
-																		<flag>wxALL</flag>
-																		<border>5</border>
-																		<object class="wxButton" name="m_buttonPush1">
-																			<enabled>0</enabled>
-																			<label>Push Back Step1</label>
-																			<default>0</default>
 																		</object>
 																	</object>
 																</object>
@@ -5282,7 +5274,7 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textStep2">
 																			<style>wxTE_READONLY</style>
-																			<size>500,-1</size>
+																			<size>900,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
 																		</object>
@@ -5292,6 +5284,7 @@
 																		<flag>wxALL</flag>
 																		<border>5</border>
 																		<object class="wxCheckBox" name="m_checkStep2">
+																			<enabled>0</enabled>
 																			<label>Step2 Status</label>
 																			<checked>0</checked>
 																		</object>
@@ -5302,18 +5295,9 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textCtrlWho2">
 																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
-																		</object>
-																	</object>
-																	<object class="sizeritem">
-																		<option>0</option>
-																		<flag>wxALL</flag>
-																		<border>5</border>
-																		<object class="wxButton" name="m_buttonPush2">
-																			<enabled>0</enabled>
-																			<label>Push Back Step2</label>
-																			<default>0</default>
 																		</object>
 																	</object>
 																</object>
@@ -5339,7 +5323,7 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textStep3">
 																			<style>wxTE_READONLY</style>
-																			<size>500,-1</size>
+																			<size>900,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
 																		</object>
@@ -5349,6 +5333,7 @@
 																		<flag>wxALL</flag>
 																		<border>5</border>
 																		<object class="wxCheckBox" name="m_checkStep3">
+																			<enabled>0</enabled>
 																			<label>Step3 Status</label>
 																			<checked>0</checked>
 																		</object>
@@ -5359,18 +5344,9 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textCtrlWho3">
 																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
-																		</object>
-																	</object>
-																	<object class="sizeritem">
-																		<option>0</option>
-																		<flag>wxALL</flag>
-																		<border>5</border>
-																		<object class="wxButton" name="m_buttonPush3">
-																			<enabled>0</enabled>
-																			<label>Push Back Step3</label>
-																			<default>0</default>
 																		</object>
 																	</object>
 																</object>
@@ -5396,7 +5372,7 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textStep4">
 																			<style>wxTE_READONLY</style>
-																			<size>500,-1</size>
+																			<size>900,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
 																		</object>
@@ -5406,6 +5382,7 @@
 																		<flag>wxALL</flag>
 																		<border>5</border>
 																		<object class="wxCheckBox" name="m_checkStep4">
+																			<enabled>0</enabled>
 																			<label>Step4 Status</label>
 																			<checked>0</checked>
 																		</object>
@@ -5416,18 +5393,9 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textCtrlWho4">
 																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
-																		</object>
-																	</object>
-																	<object class="sizeritem">
-																		<option>0</option>
-																		<flag>wxALL</flag>
-																		<border>5</border>
-																		<object class="wxButton" name="m_buttonPush4">
-																			<enabled>0</enabled>
-																			<label>Push Back Step4</label>
-																			<default>0</default>
 																		</object>
 																	</object>
 																</object>
@@ -5453,7 +5421,7 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textStep5">
 																			<style>wxTE_READONLY</style>
-																			<size>500,-1</size>
+																			<size>900,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
 																		</object>
@@ -5463,6 +5431,7 @@
 																		<flag>wxALL</flag>
 																		<border>5</border>
 																		<object class="wxCheckBox" name="m_checkStep5">
+																			<enabled>0</enabled>
 																			<label>Step5 Status</label>
 																			<checked>0</checked>
 																		</object>
@@ -5473,6 +5442,35 @@
 																		<border>5</border>
 																		<object class="wxTextCtrl" name="m_textCtrlWho5">
 																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
+																			<bg>#f0f0f0</bg>
+																			<value></value>
+																		</object>
+																	</object>
+																</object>
+															</object>
+															<object class="sizeritem">
+																<option>1</option>
+																<flag>wxEXPAND</flag>
+																<border>5</border>
+																<object class="wxBoxSizer">
+																	<orient>wxHORIZONTAL</orient>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxStaticText" name="m_staticText15141">
+																			<label>Step 6:</label>
+																			<wrap>-1</wrap>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxTextCtrl" name="m_textStep6">
+																			<style>wxTE_READONLY</style>
+																			<size>900,-1</size>
 																			<bg>#f0f0f0</bg>
 																			<value></value>
 																		</object>
@@ -5481,10 +5479,119 @@
 																		<option>0</option>
 																		<flag>wxALL</flag>
 																		<border>5</border>
-																		<object class="wxButton" name="m_buttonPush5">
+																		<object class="wxCheckBox" name="m_checkStep6">
 																			<enabled>0</enabled>
-																			<label>Push Back Step5</label>
-																			<default>0</default>
+																			<label>Step6 Status</label>
+																			<checked>0</checked>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxTextCtrl" name="m_textCtrlWho6">
+																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
+																			<bg>#f0f0f0</bg>
+																			<value></value>
+																		</object>
+																	</object>
+																</object>
+															</object>
+															<object class="sizeritem">
+																<option>1</option>
+																<flag>wxEXPAND</flag>
+																<border>5</border>
+																<object class="wxBoxSizer">
+																	<orient>wxHORIZONTAL</orient>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxStaticText" name="m_staticText151411">
+																			<label>Step 7:</label>
+																			<wrap>-1</wrap>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxTextCtrl" name="m_textStep7">
+																			<style>wxTE_READONLY</style>
+																			<size>900,-1</size>
+																			<bg>#f0f0f0</bg>
+																			<value></value>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxCheckBox" name="m_checkStep7">
+																			<enabled>0</enabled>
+																			<label>Step7 Status</label>
+																			<checked>0</checked>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxTextCtrl" name="m_textCtrlWho7">
+																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
+																			<bg>#f0f0f0</bg>
+																			<value></value>
+																		</object>
+																	</object>
+																</object>
+															</object>
+															<object class="sizeritem">
+																<option>1</option>
+																<flag>wxEXPAND</flag>
+																<border>5</border>
+																<object class="wxBoxSizer">
+																	<orient>wxHORIZONTAL</orient>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxStaticText" name="m_staticText1514111">
+																			<label>Step 8:</label>
+																			<wrap>-1</wrap>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxTextCtrl" name="m_textStep8">
+																			<style>wxTE_READONLY</style>
+																			<size>900,-1</size>
+																			<bg>#f0f0f0</bg>
+																			<value></value>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxCheckBox" name="m_checkStep8">
+																			<enabled>0</enabled>
+																			<label>Step8 Status</label>
+																			<checked>0</checked>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALL</flag>
+																		<border>5</border>
+																		<object class="wxTextCtrl" name="m_textCtrlWho8">
+																			<style>wxTE_READONLY</style>
+																			<size>250,-1</size>
+																			<bg>#f0f0f0</bg>
+																			<value></value>
 																		</object>
 																	</object>
 																</object>
@@ -5700,7 +5807,7 @@
 	</object>
 	<object class="wxDialog" name="dialog:workflow">
 		<style>wxDEFAULT_DIALOG_STYLE</style>
-		<size>500,500</size>
+		<size>700,600</size>
 		<title>Workflow Questions</title>
 		<centered>1</centered>
 		<object class="wxBoxSizer">
@@ -5717,6 +5824,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST1">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5728,6 +5841,12 @@
 						<object class="wxComboBox" name="WQChoice1">
 							<style>wxCB_DROPDOWN|wxCB_READONLY</style>
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<value></value>
 							<content />
 						</object>
@@ -5746,6 +5865,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST2">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5757,6 +5882,12 @@
 						<object class="wxComboBox" name="WQChoice2">
 							<style>wxCB_DROPDOWN|wxCB_READONLY</style>
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<value></value>
 							<content />
 						</object>
@@ -5775,6 +5906,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST3">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5785,6 +5922,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice3">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5803,6 +5946,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST4">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5813,6 +5962,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice4">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5831,6 +5986,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST5">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5841,6 +6002,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice5">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5859,6 +6026,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST6">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5869,6 +6042,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice6">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5887,6 +6066,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST7">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5897,6 +6082,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice7">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5915,6 +6106,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST8">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5925,6 +6122,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice8">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5943,6 +6146,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST9">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5953,6 +6162,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice9">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5971,6 +6186,12 @@
 						<border>5</border>
 						<object class="wxStaticText" name="WQST10">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label></label>
 							<wrap>-1</wrap>
 						</object>
@@ -5981,6 +6202,12 @@
 						<border>5</border>
 						<object class="wxChoice" name="WQChoice10">
 							<hidden>1</hidden>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<selection>1</selection>
 							<content />
 						</object>
@@ -5998,6 +6225,12 @@
 						<flag>wxALIGN_CENTER|wxALL</flag>
 						<border>5</border>
 						<object class="wxButton" name="m_buttonOK">
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+							</font>
 							<label>Ok</label>
 							<default>0</default>
 						</object>

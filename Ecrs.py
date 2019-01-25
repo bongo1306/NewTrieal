@@ -29,6 +29,7 @@ import os
 import stat
 import time
 import datetime as dt
+from dateutil.relativedelta import relativedelta
 
 import Database
 import General
@@ -953,7 +954,23 @@ def on_click_open_new_ecr_form(event):
     General.app.init_new_ecr_dialog()
 
 def on_click_assign_workflow(event):
-    General.app.init_workflow_dialog()
+    cursor = Database.connection.cursor()
+    ecr_id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
+    component = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_component').GetStringSelection()
+    sub_system = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_sub_system').GetStringSelection()
+    if component != '' and sub_system != '':
+        ecr = cursor.execute("SELECT component, sub_system FROM ecrs WHERE id = \'{}\'".format(ecr_id)).fetchone()
+        if component != ecr[0]:
+            cursor.execute("UPDATE ecrs SET component = \'{}\' WHERE id = \'{}\'".format(component,ecr_id))
+            Database.connection.commit()
+        if sub_system != ecr[1]:
+            cursor.execute("UPDATE ecrs SET sub_system = \'{}\' WHERE id = \'{}\'".format(sub_system,ecr_id))
+            Database.connection.commit()
+        General.app.init_workflow_dialog()
+    else:
+        wx.MessageBox('Workflow cannot be assigned without selecting both Component and Sub-System',
+                          'Please select a Component and Sub-System from dropdowns', wx.OK | wx.ICON_ERROR)
+        return
 
 
 def on_click_open_duplicate_ecr_form(event):
@@ -1437,7 +1454,12 @@ def get_workflow_steps(event):
         q.append(steps)
         #print('Steps = %r' % (q,))
         steps = cursor.fetchone()
-    #print q
+
+    if len(q) == 0:
+        wx.MessageBox('This scenario does not exist/apply. Please check the Answers to Workflow Questions',
+                      'Workflow Not Applicable', wx.OK | wx.ICON_ERROR)
+        return
+
     Steps = []
     Assignedto = []
     print q
@@ -1447,34 +1469,65 @@ def get_workflow_steps(event):
         Assignedto.append(q[i][1])
 
     #Set the workflow Steps Description and Person on Modify Ecrs form
-    ctrl(General.app.modify_ecr_dialog, 'm_textStep1').SetValue(q[0][0])
-    ctrl(General.app.modify_ecr_dialog, 'm_textStep2').SetValue(q[1][0])
-    ctrl(General.app.modify_ecr_dialog, 'm_textStep3').SetValue(q[2][0])
-    ctrl(General.app.modify_ecr_dialog, 'm_textStep4').SetValue(q[3][0])
-    ctrl(General.app.modify_ecr_dialog, 'm_textStep5').SetValue(q[4][0])
-
-    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho1').SetValue(q[0][1])
-    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').SetValue(q[1][1])
-    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').SetValue(q[2][1])
-    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(q[3][1])
-    ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(q[4][1])
-
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetLabel('Email Sent')
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Pending')
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Pending')
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Pending')
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Pending')
-
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
-    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+    if len(q) >= 1:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep1').SetValue(q[0][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho1').SetValue(q[0][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetLabel('Email Sent')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Enable()
+    if len(q) >= 2:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep2').SetValue(q[1][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').SetValue(q[1][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Pending')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
+    if len(q) >= 3:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep3').SetValue(q[2][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').SetValue(q[2][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Pending')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
+    if len(q) >= 4:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep4').SetValue(q[3][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(q[3][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Pending')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
+    if len(q) >= 5:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep5').SetValue(q[4][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(q[4][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Pending')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
+    if len(q) >= 6:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep6').SetValue(q[5][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho6').SetValue(q[5][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').SetLabel('Pending')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Disable()
+    if len(q) >= 7:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep7').SetValue(q[6][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho7').SetValue(q[6][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').SetLabel('Pending')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Disable()
+    if len(q) >= 8:
+        ctrl(General.app.modify_ecr_dialog, 'm_textStep8').SetValue(q[7][0])
+        ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho8').SetValue(q[7][1])
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').SetLabel('Pending')
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Disable()
 
     ecr_id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
 
     for s in range(len(Steps)):
-       cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, time_created, created_by) values (?,?,?,?,?, current_timestamp,?)',
-                ecr_id, s + 1, Steps[s], Assignedto[s], 'Pending', General.app.current_user)
+        # for the 1st step update ECRev_Status table specially to fill in time_assigned column = current timestamp
+        if s == 0:
+            cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, '
+                       'time_created, time_assigned, created_by) values (?,?,?,?,?, current_timestamp, current_timestamp, ?)',
+                           ecr_id, s + 1, Steps[s],Assignedto[s], 'Pending', General.app.current_user)
+        else:
+            cursor.execute('insert into ecrev_status (ecrev_no, step_no, Step_Description, assigned_to, current_status, '
+                'time_created, created_by) values (?,?,?,?,?, current_timestamp, ?)',
+                ecr_id, s + 1, Steps[s],Assignedto[s], 'Pending', General.app.current_user)
+
+    Database.connection.commit()
+
+    #Update the who assigned
+    cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                       '''.format(Assignedto[0], str(dt.datetime.today())[:19], ecr_id))
     Database.connection.commit()
 
     #Inserted in ECRev Status Send EMAIL TO 1ST PERSON ASSIGNED!!
@@ -1513,48 +1566,113 @@ def get_workflow_steps(event):
 def assign_ecrev_workflow_next_step(event):
     ecrev_no = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
 
+    cursor = Database.connection.cursor()
+
+    workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',ecrev_no).fetchall()
+    print len(workflow_info)
+
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').GetValue() == True:
         step_no = 1
         ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetLabel('Completed')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Email Sent')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Enable()
+
+        if step_no < len(workflow_info):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Email Sent')
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Enable()
+            who_assigned = ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').GetValue()
+            cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                    '''.format(who_assigned, str(dt.datetime.today())[:19], ecrev_no))
+            Database.connection.commit()
 
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').GetValue() == True:
         step_no = 2
         ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel('Completed')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Email Sent')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Enable()
+
+        if step_no < len(workflow_info):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Email Sent')
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Enable()
+            who_assigned = ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').GetValue()
+            cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                           '''.format(who_assigned, str(dt.datetime.today())[:19], ecrev_no))
+            Database.connection.commit()
 
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').GetValue() == True:
         step_no = 3
         ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel('Completed')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Email Sent')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Enable()
+
+        if step_no < len(workflow_info):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Email Sent')
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Enable()
+            who_assigned = ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').GetValue()
+            cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                           '''.format(who_assigned, str(dt.datetime.today())[:19], ecrev_no))
+            Database.connection.commit()
 
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').GetValue() == True:
         step_no = 4
         ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel('Completed')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Email Sent')
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Enable()
+
+        if step_no < len(workflow_info):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Email Sent')
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Enable()
+            who_assigned = ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').GetValue()
+            cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                           '''.format(who_assigned, str(dt.datetime.today())[:19], ecrev_no))
+            Database.connection.commit()
 
     if ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').GetValue() == True:
         step_no = 5
         ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
-        ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel('Completed')
+
+        if step_no < len(workflow_info):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').SetLabel('Email Sent')
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Enable()
+            who_assigned = ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho6').GetValue()
+            cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                           '''.format(who_assigned, str(dt.datetime.today())[:19], ecrev_no))
+            Database.connection.commit()
+
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').GetValue() == True:
+        step_no = 6
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Disable()
+
+        if step_no < len(workflow_info):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').SetLabel('Email Sent')
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Enable()
+            who_assigned = ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho7').GetValue()
+            cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                           '''.format(who_assigned, str(dt.datetime.today())[:19], ecrev_no))
+            Database.connection.commit()
+
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').GetValue() == True:
+        step_no = 7
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Disable()
+
+        if step_no < len(workflow_info):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').SetLabel('Email Sent')
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Enable()
+            who_assigned = ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho8').GetValue()
+            cursor.execute('''UPDATE ecrs SET who_assigned=\'{}\', when_assigned=\'{}\' WHERE id=\'{}\'
+                           '''.format(who_assigned, str(dt.datetime.today())[:19], ecrev_no))
+            Database.connection.commit()
 
 
-    cursor = Database.connection.cursor()
+    if ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').GetValue() == True:
+        step_no = 8
+        ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Disable()
 
-    cursor.execute('Update Ecrev_Status SET completed_by = ?, time_complete = current_timestamp, current_Status = ? where Ecrev_no = ? and step_no = ?',General.app.current_user,'Completed',ecrev_no,step_no)
-    Database.connection.commit()
+    if step_no != len(workflow_info):
 
-    if step_no != 5:
+        cursor.execute('Update Ecrev_Status SET completed_by = ?, time_complete = current_timestamp, current_Status = ? '
+            'where Ecrev_no = ? and step_no = ?', General.app.current_user, 'Completed', ecrev_no, step_no)
+
         cursor.execute('Update Ecrev_Status SET time_assigned = current_timestamp where Ecrev_no = ? and step_no = ?', ecrev_no, step_no+1)
+
         Database.connection.commit()
+
+        #Update the step_status checkboxes
+        for r in range(1,step_no+1):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(str(r))).SetLabel('Completed')
+
         ecr = cursor.execute('SELECT TOP 1 reference_number, request, resolution, item FROM ecrs WHERE id = \'{}\''.format(ecrev_no)).fetchone()
         order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
         if order != None:
@@ -1583,9 +1701,217 @@ def assign_ecrev_workflow_next_step(event):
         sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
         Thread(target=send_workflow_email, args=(ecrev_no, step_no+1, dbquery[1], sender, reciever, shortcuts,item_number,sales_order,customer,location,model, ecr)).start()
     else:
-        wx.MessageBox('Since you marked the last step of Workflow process as completed, this ECR will need to be closed by you now','ECR Closure Needed Notice', wx.OK)
+        wx.MessageBox('Since you marked the last step of Workflow process as completed, this ECR will be closed now','ECR Closure Notice', wx.OK)
+
+        for r in range(1,step_no):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(str(r))).SetLabel('Completed')
+
+        id = General.app.modify_ecr_dialog.GetTitle().split(' ')[-1]
+
+        if ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection() == 'Engineering Error':
+            if ctrl(General.app.modify_ecr_dialog, 'choice:who_errored').GetStringSelection() == '':
+                wx.MessageBox('Since this is an Engineering Error, you must select who errored before closing the ECR.'
+                              '\nPlease hit the checkbox of last workflow step again after fixing the issue to close this ECR',
+                              'Hint', wx.OK | wx.ICON_WARNING)
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(str(step_no))).Enable()
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(str(step_no))).SetValue(False)
+                return
+
+        if ctrl(General.app.modify_ecr_dialog, 'text:resolution').GetValue().strip() == '':
+            wx.MessageBox('Please enter a descriptive resolution before closing the ECR.'
+                          '\nPlease hit the checkbox of last workflow step again after fixing the issue to close this ECR', 'Hint',
+                          wx.OK | wx.ICON_WARNING)
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(str(step_no))).Enable()
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(str(step_no))).SetValue(False)
+            return
+
+        need_by_date = ctrl(General.app.modify_ecr_dialog, 'calendar:ecr_need_by').GetDate()
+        need_by_date = dt.date(need_by_date.GetYear(), need_by_date.GetMonth() + 1, need_by_date.GetDay())
+
+        type = General.app.ecr_type
+        reference_number = ctrl(General.app.modify_ecr_dialog, 'text:reference_number').GetValue().replace("'",
+                                                                                                           "''").replace(
+            '\"', "''''")
+        item_number = Database.get_item_from_ref(reference_number)
+        reason = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_reason').GetStringSelection()
+        document = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_document').GetStringSelection()
+        request = ctrl(General.app.modify_ecr_dialog, 'text:description').GetValue().replace("'", "''").replace('\"',
+                                                                                                                "''''")
+        Units_Affected = ctrl(General.app.modify_ecr_dialog, 'm_NoUnitsAffected').GetValue().replace("'", "''").replace(
+            '\"', "''''")
+        when_needed = need_by_date
+        resolution = ctrl(General.app.modify_ecr_dialog, 'text:resolution').GetValue().replace("'", "''").replace('\"',
+                                                                                                                  "''''")
+        who_errored = ctrl(General.app.modify_ecr_dialog, 'choice:who_errored').GetStringSelection().replace("'",
+                                                                                                             "''").replace(
+            '\"', "''''")
+        who_closed = General.app.current_user
+        when_closed = str(dt.datetime.today())[:19]
+        who_approved_first = ctrl(General.app.modify_ecr_dialog, 'label:who_approved_first').GetLabel()
+        who_approved_second = ctrl(General.app.modify_ecr_dialog, 'label:who_approved_second').GetLabel()
+        priority = ctrl(General.app.modify_ecr_dialog, 'spin:priority').GetValue()
+
+        # track if someone is changing the reason code
+        previous_reason_code = cursor.execute("SELECT reason FROM ecrs WHERE id = '{}'".format(id)).fetchone()[0]
+        new_reason_code = reason
+        if previous_reason_code != new_reason_code:
+            sql = "INSERT INTO ecr_reason_code_changes (ecr_id, who_changed, when_changed, previous_code, Production_Plant, new_code) VALUES ("
+            sql += "{}, ".format(id)
+            sql += "'{}', ".format(General.app.current_user)
+            sql += "'{}', ".format(str(dt.datetime.today())[:19])
+            sql += "'{}', ".format(previous_reason_code)
+            sql += '\'{}\', '.format(Prod_Plant)
+            sql += "'{}')".format(new_reason_code)
+
+            cursor.execute(sql)
+
+        sql = 'UPDATE ecrs SET '
+        sql += 'type=\'{}\', '.format(type)
+        sql += 'reference_number=\'{}\', '.format(reference_number)
+
+        if item_number == None:
+            sql += 'item=NULL, '
+        else:
+            sql += 'item=\'{}\', '.format(item_number)
+
+        sql += 'reason=\'{}\', '.format(reason)
+        sql += 'document=\'{}\', '.format(document)
+        sql += 'request=\'{}\', '.format(request)
+        sql += 'Units_Affected=\'{}\', '.format(Units_Affected)
+        sql += 'when_needed=\'{} 23:59:00\', '.format(when_needed)
+        sql += 'resolution=\'{}\', '.format(resolution)
+
+        if who_errored != '':
+            sql += 'who_errored=\'{}\', '.format(who_errored)
+        else:
+            sql += 'who_errored=NULL, '
+
+        sql += 'status=\'Closed\', '
+        sql += 'who_closed=\'{}\', '.format(who_closed)
+        sql += 'when_closed=\'{}\', '.format(when_closed)
+
+        if who_approved_first == '':
+            sql += 'who_approved_first = NULL, '
+        else:
+            sql += 'who_approved_first=\'{}\', '.format(who_approved_first)
+
+        if who_approved_second == '':
+            sql += 'who_approved_second = NULL, '
+        else:
+            sql += 'who_approved_second=\'{}\', '.format(who_approved_second)
+
+        sql += 'approval_stage=\'{}\', '.format(
+            ctrl(General.app.modify_ecr_dialog, 'choice:stage').GetStringSelection())
+
+        component = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_component').GetStringSelection()
+        sql += "component='{}', ".format(component.replace("'", "''").replace('\"', "''''"))
+
+        sub_system = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_sub_system').GetStringSelection()
+        sql += "sub_system='{}', ".format(sub_system.replace("'", "''").replace('\"', "''''"))
+
+        severity = ctrl(General.app.modify_ecr_dialog, 'choice:ecr_severity').GetStringSelection()
+        if severity == 'High':
+            sql += "severity=1.0, "
+        elif severity == 'Medium':
+            sql += "severity=0.5, "
+        elif severity == 'Low':
+            sql += "severity=0.1, "
+        else:
+            sql += "severity=1.0, "
+
+        sql += 'priority=\'{}\' '.format(priority)
+
+        sql += 'WHERE id=\'{}\''.format(id)
+
+        cursor.execute(sql)
+        Database.connection.commit()
+
+        cursor.execute("UPDATE ecrs SET attachment = NULL WHERE attachment = ''")
+        Database.connection.commit()
+
+        ecr = cursor.execute('SELECT TOP 1 id, reference_number, request, resolution, who_requested, who_errored, item,'
+                             ' type, document FROM ecrs WHERE id = \'{}\''.format(id)).fetchone()
+        # order = Database.get_order_data_from_ref(reference_number)
+        order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[6])).fetchone()
+
+        # takes a little longer to send an email so put it in a serperate thread so user
+        # doesn't have to wait around :)
+        sender = \
+            cursor.execute(
+                'SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[
+                0]
+
+        # email person who originally entered the ECR
+        reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(
+            ecr[4].replace("'", "''").replace('\"', "''''"))).fetchone()[0]
+        Thread(target=send_ecr_closed_email, args=(ecr, order, reciever, sender)).start()
+
+        # email the engineer who errored
+        if who_errored != '':
+            reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(
+                ecr[5].replace("'", "''").replace('\"', "''''"))).fetchone()[0]
+            Thread(target=send_ecr_soe_email, args=(ecr, order, reciever, sender)).start()
+
+        # email people who worked on items that may be similarly affected by this ECR
+        if ctrl(General.app.modify_ecr_dialog, 'checkbox:similar_ecrs').GetValue() == True:
+            similar_items_data = get_similar_items(item_number)
+            if similar_items_data:
+                reciever_names = []
+
+                ecr_type = ecr[7]
+
+                for data in similar_items_data[1]:
+                    sales_order, item, project_lead, mechanical_engineer, electrical_engineer, structural_engineer = data
+
+                    if type == 'Mechanical':
+                        reciever_names.append(mechanical_engineer)
+
+                    elif type == 'Electrical':
+                        reciever_names.append(electrical_engineer)
+
+                    elif type == 'Structural':
+                        reciever_names.append(structural_engineer)
+
+                    elif type == 'Other':
+                        reciever_names.append(project_lead)
+
+                    # if no one assigned to that post... call out project lead
+                    if reciever_names[-1] == None:
+                        reciever_names.append(project_lead)
+
+                reciever_emails = []
+                reciever_names = list(set(reciever_names))
+
+                for reciever_name in reciever_names:
+                    if reciever_name:
+                        result = cursor.execute("SELECT TOP 1 email FROM employees WHERE name = '{}'".format(
+                            reciever_name.replace("'", "''"))).fetchone()
+                        if result:
+                            reciever_emails.append(result[0])
+
+                reciever_emails = list(set(reciever_emails))
+
+                Thread(target=send_similar_items_email,
+                       args=(order, ecr, similar_items_data[1], reciever_emails, sender)).start()
+
+        cursor.execute('Update Ecrev_Status SET completed_by = ?, time_complete = current_timestamp, current_Status = ? '
+            'where Ecrev_no = ? and step_no = ?', General.app.current_user, 'Completed', ecrev_no, step_no)
+        Database.connection.commit()
+
+        for r in range(1,step_no+1):
+            ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(str(r))).SetLabel('Completed')
+
+        wx.MessageBox('ECR No. \'{}\' has been closed successfully'.format(ecrev_no),
+                      'ECR Closed Successfully', wx.OK)
+
+        refresh_my_ecrs_list()
+        refresh_open_ecrs_list()
+        refresh_closed_ecrs_list()
+        refresh_my_assigned_ecrs_list()
+        refresh_committee_ecrs_list()
+        populate_ecr_panel(id)
+
         General.app.modify_ecr_dialog.Destroy()
-        General.app.init_close_ecr_dialog(ecrev_no)
 
 
 def on_click_add_revisions_with_ecr(event):
@@ -2409,10 +2735,10 @@ def refresh_open_ecrs_list(event=None, limit=100):
         LEFT JOIN      
             dbo.{} ON ecrs.item = {}.item
         WHERE 
-            ecrs.status = 'Open' AND Production_Plant = \'{}\'
+            ecrs.status = 'Open' AND ecrs.Production_Plant = \'{}\'
         ORDER BY 
-            {}.sales_order ASC, {}.line_up ASC'''.format(table_used, table_used, table_used, table_used, Prod_Plant,
-                                                         table_used, table_used))
+            {}.sales_order ASC, {}.line_up ASC'''.format(table_used, table_used, table_used, table_used,
+                                                         Prod_Plant, table_used, table_used))
 
     records = cursor.fetchall()
 
@@ -3015,7 +3341,7 @@ def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver, shortcuts,
         Database.connection.commit()
 
         #Give user a message box notification of email sent
-        wx.MessageBox('Step Number {} assigned to {} and Email notification has been sent to {}'.format(step_no, receiver,receiver),'Next person notified by Email',
+        wx.MessageBox('Step Number {} assigned to {} and \nEmail notification has been sent to {}'.format(step_no, receiver,receiver),'Next person notified by Email',
             wx.OK)
 
     except Exception, e:
