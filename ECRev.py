@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '9.9'
+version = '10.0'
 
 # extend Python's functionality by importing modules
 import sys
@@ -491,7 +491,10 @@ class ECRevApp(wx.App):
 
         # set window's title with user's name reordered as first then last name
         reordered_name = self.current_user.replace(' ', '')  # remove any spaces
-        reordered_name = reordered_name.split(',')[1] + ' ' + reordered_name.split(',')[0]
+        try:
+            reordered_name = reordered_name.split(',')[1] + ' ' + reordered_name.split(',')[0]
+        except:
+            reordered_name = reordered_name
         self.main_frame.SetTitle('ECRev v{} - Logged in as {} in {} Database'.format(version, reordered_name, Ecrs.Prod_Plant))
         ctrl(self.main_frame, 'm_textCtrlHeader').AppendText('You are in {} Database'.format(Ecrs.Prod_Plant))
 

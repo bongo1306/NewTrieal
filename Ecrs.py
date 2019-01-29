@@ -1462,7 +1462,7 @@ def get_workflow_steps(event):
 
     Steps = []
     Assignedto = []
-    print q
+
 
     for i in range(len(q)):
         Steps.append(q[i][0])
@@ -1531,8 +1531,18 @@ def get_workflow_steps(event):
     Database.connection.commit()
 
     #Inserted in ECRev Status Send EMAIL TO 1ST PERSON ASSIGNED!!
-    reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(Assignedto[0])).fetchone()[0]
-    sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    receiver_emails = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(Assignedto[0])).fetchone()[0]
+
+    try:
+        receiver_emails = [x.strip() for x in receiver_emails.split(';')]
+    except:
+        print "No list"
+
+    sender_emails = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+    try:
+        sender_emails = [x.strip() for x in sender_emails.split(';')]
+    except:
+        print "No list"
 
     ecr = cursor.execute('SELECT TOP 1 reference_number, request, resolution, item FROM ecrs WHERE id = \'{}\''.format(ecr_id)).fetchone()
     order = cursor.execute("SELECT TOP 1 * FROM {} WHERE item = \'{}\'".format(table_used, ecr[3])).fetchone()
@@ -1558,7 +1568,7 @@ def get_workflow_steps(event):
         location = ""
         model = ""
 
-    Thread(target=send_workflow_email, args=(ecr_id, 1, Steps[0],sender, reciever, shortcuts,item_number,sales_order,customer,location,model, ecr)).start()
+    Thread(target=send_workflow_email, args=(ecr_id, 1, Assignedto[0], Steps[0],sender_emails[0], receiver_emails, shortcuts,item_number,sales_order,customer,location,model, ecr)).start()
 
     ctrl(General.app.modify_ecr_dialog, 'm_buttonAssign').Disable()
     General.app.workflow_dialog.Destroy()
@@ -1697,9 +1707,20 @@ def assign_ecrev_workflow_next_step(event):
             model = ""
 
         dbquery = cursor.execute('Select Assigned_to, Step_description from Ecrev_Status where Ecrev_no =? and step_no = ?',ecrev_no,step_no+1).fetchone()
-        reciever = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(dbquery[0])).fetchone()[0]
-        sender = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
-        Thread(target=send_workflow_email, args=(ecrev_no, step_no+1, dbquery[1], sender, reciever, shortcuts,item_number,sales_order,customer,location,model, ecr)).start()
+
+        receiver_emails = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(dbquery[0])).fetchone()[0]
+        try:
+            receiver_emails = [x.strip() for x in receiver_emails.split(';')]
+        except:
+            print "No list"
+
+        sender_emails = cursor.execute('SELECT TOP 1 email FROM employees WHERE name = \'{}\''.format(General.app.current_user)).fetchone()[0]
+        try:
+            sender_emails = [x.strip() for x in sender_emails.split(';')]
+        except:
+            print "No list"
+
+        Thread(target=send_workflow_email, args=(ecrev_no, step_no+1, dbquery[0], dbquery[1], sender_emails[0], receiver_emails, shortcuts,item_number,sales_order,customer,location,model, ecr)).start()
     else:
         wx.MessageBox('Since you marked the last step of Workflow process as completed, this ECR will be closed now','ECR Closure Notice', wx.OK)
 
@@ -3288,12 +3309,17 @@ def send_ecr_assigned_email(ecr, order, reciever, sender):
 
     server.close()
 
-def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver, shortcuts,item_number,sales_order,customer,location,model, ecr):
+def send_workflow_email(ecr_id, step_no, assigned_to, step_desc, sender, MailTo, shortcuts,item_number,sales_order,customer,location,model, ecr):
     server = smtplib.SMTP('mailrelay.lennoxintl.com', 25)
+
+    MailTo_String = ''
+    for email in MailTo:
+        MailTo_String += '; {}'.format(email)
+    MailTo_String = MailTo_String[2:]
 
     msg = MIMEMultipart()
     msg["From"] = sender
-    msg["To"] = receiver
+    msg["To"] = MailTo_String
     msg["Subject"] = 'Assigned Workflow Step Number: {}, With Respect to Ecr_id {}'.format(step_no,ecr_id)
     msg['Date'] = formatdate(localtime=True)
 
@@ -3333,7 +3359,7 @@ def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver, shortcuts,
 
     #print msg
     try:
-        server.sendmail(sender, receiver, msg.as_string())
+        server.sendmail(sender, MailTo, msg.as_string())
 
         #update status in database
         cursor = Database.connection.cursor()
@@ -3341,7 +3367,7 @@ def send_workflow_email(ecr_id, step_no, step_desc, sender, receiver, shortcuts,
         Database.connection.commit()
 
         #Give user a message box notification of email sent
-        wx.MessageBox('Step Number {} assigned to {} and \nEmail notification has been sent to {}'.format(step_no, receiver,receiver),'Next person notified by Email',
+        wx.MessageBox('Step Number {} assigned to {}\nAND\nEmail notification has been sent to\n{}'.format(step_no, assigned_to,MailTo_String),'Next person/group notified by Email',
             wx.OK)
 
     except Exception, e:
