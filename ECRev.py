@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-version = '10.0'
+version = '10.1'
 
 # extend Python's functionality by importing modules
 import sys
@@ -517,6 +517,25 @@ class ECRevApp(wx.App):
 
         Ecrs.refresh_committee_ecrs_list()
 
+        if Ecrs.Prod_Plant != 'Systems':
+            Ecrs.refresh_longterm_open_ecrs_list(limit=15)
+            print '4: {}'.format(int(round(time.time() * 1000)) - start_time)
+            start_time = int(round(time.time() * 1000))
+        else:
+            #remove Long Term Open ECRs tab if Systems Plant
+            notebook = ctrl(self.main_frame, 'notebook:ecrs')
+            tabs_to_remove = []
+
+            for index in range(notebook.GetPageCount()):
+                if notebook.GetPageText(index).strip() == 'Long Term Open ECRs':
+                    tabs_to_remove.append(index)
+                    continue
+
+            removed_count = 0
+            for index in tabs_to_remove:
+                notebook.RemovePage(index - removed_count)
+                removed_count += 1
+
         ##Ecrs.reset_search_fields()
         Ecrs.populate_ecr_order_panel(None)  # clear out info panel
         Ecrs.populate_ecr_panel(None)  # clear out info panel
@@ -628,129 +647,41 @@ class ECRevApp(wx.App):
         ctrl(self.close_ecr_dialog, 'choice:who_errored').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
         ctrl(self.close_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
-        # Hide workflow and Reopen Button for now until it is ready for release
-        #ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
-        #ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
-
-        #ctrl(self.close_ecr_dialog, 'm_buttonAssign').Disable()
-        #ctrl(self.close_ecr_dialog, 'm_buttonReopen').Hide()
+        ctrl(self.close_ecr_dialog, 'm_buttonAssign').Disable()
+        ctrl(self.close_ecr_dialog, 'm_buttonReopen').Hide()
+        ctrl(self.close_ecr_dialog, 'ReAssign_Workflow').Disable()
 
         cursor = Database.connection.cursor()
 
         # Hide Assign Workflow Button if user in Systems Plant
         if Ecrs.Prod_Plant == 'Systems':
             ctrl(self.close_ecr_dialog, 'm_buttonAssign').Hide()
+            ctrl(self.close_ecr_dialog, 'm_buttonListScen').Hide()
             ctrl(self.close_ecr_dialog, 'm_panelWorkflow').Hide()
+            ctrl(self.close_ecr_dialog, 'ReAssign_Workflow').Hide()
+            ctrl(self.close_ecr_dialog, 'ScenarioNo').Hide()
 
-        try:
-            workflow_exists = cursor.execute('Select top 1 step_no from Ecrev_Status where Ecrev_no =?',close_ecr_id).fetchone()[0]
-            if workflow_exists:
-                workflow = True
-        except:
+        workflow_exists = cursor.execute('Select top 1 step_no, Scenario_No from Ecrev_Status where Ecrev_no =?',close_ecr_id).fetchone()
+        if workflow_exists:
+            workflow = True
+            ctrl(self.close_ecr_dialog, 'ScenarioNo').SetValue('Scenario No' + '-' + str(workflow_exists[1]))
+        else:
             workflow = False
 
         if workflow:
-            workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',close_ecr_id).fetchall()
+            workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status '
+                                           'where Ecrev_no = ?',close_ecr_id).fetchall()
 
-            if len(workflow_info) >=1:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetLabel(workflow_info[0][2])
+            for k in range(len(workflow_info)):
+                ctrl(General.app.close_ecr_dialog, 'm_textStep{}'.format(k + 1)).SetValue(workflow_info[k][1])
+                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho{}'.format(k + 1)).SetValue(workflow_info[k][0])
+                ctrl(General.app.close_ecr_dialog, 'm_checkStep{}'.format(k + 1)).SetLabel(workflow_info[k][2])
 
-                if workflow_info[0][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Enable()
-
-                if workflow_info[0][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep1').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
-
-            if len(workflow_info) >= 2:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetLabel(workflow_info[1][2])
-
-                if workflow_info[1][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Enable()
-
-                if workflow_info[1][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep2').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep2').Disable()
-
-            if len(workflow_info) >= 3:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetLabel(workflow_info[2][2])
-
-                if workflow_info[2][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Enable()
-
-                if workflow_info[2][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep3').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep3').Disable()
-
-            if len(workflow_info) >= 4:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetLabel(workflow_info[3][2])
-
-                if workflow_info[3][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Enable()
-
-                if workflow_info[3][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep4').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep4').Disable()
-
-            if len(workflow_info) >= 5:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetLabel(workflow_info[4][2])
-
-                if workflow_info[4][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Enable()
-
-                if workflow_info[4][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep5').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep5').Disable()
-
-            if len(workflow_info) >= 6:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep6').SetValue(workflow_info[5][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho6').SetValue(workflow_info[5][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep6').SetLabel(workflow_info[5][2])
-
-                if workflow_info[5][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep6').Enable()
-
-                if workflow_info[5][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep6').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep6').Disable()
-
-            if len(workflow_info) >= 7:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep7').SetValue(workflow_info[6][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho7').SetValue(workflow_info[6][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep7').SetLabel(workflow_info[6][2])
-
-                if workflow_info[6][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep7').Enable()
-
-                if workflow_info[6][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep7').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep7').Disable()
-
-            if len(workflow_info) >= 8:
-                ctrl(General.app.close_ecr_dialog, 'm_textStep8').SetValue(workflow_info[7][1])
-                ctrl(General.app.close_ecr_dialog, 'm_textCtrlWho8').SetValue(workflow_info[7][0])
-                ctrl(General.app.close_ecr_dialog, 'm_checkStep8').SetLabel(workflow_info[7][2])
-
-                if workflow_info[7][2] == 'Email Sent':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep8').Enable()
-
-                if workflow_info[7][2] == 'Completed':
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep8').SetValue(True)
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep8').Disable()
-
-            if len(workflow_info) < 8:
-                for r in range(len(workflow_info)+1,9):
-                    ctrl(General.app.close_ecr_dialog, 'm_checkStep{}'.format(r)).Disable()
+                if workflow_info[k][2] == 'Email Sent':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep{}'.format(k + 1)).Enable()
+                elif workflow_info[k][2] == 'Completed':
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep{}'.format(k + 1)).SetValue(True)
+                    ctrl(General.app.close_ecr_dialog, 'm_checkStep{}'.format(k + 1)).Disable()
 
         else:
             ctrl(General.app.close_ecr_dialog, 'm_checkStep1').Disable()
@@ -808,6 +739,7 @@ class ECRevApp(wx.App):
         # self.close_ecr_dialog.Bind(wx.EVT_CHOICE, Ecrs.on_select_ecr_reason, id=xrc.XRCID('choice:ecr_reason'))
         # self.close_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_submit_ecr, id=xrc.XRCID('button:submit_ecr'))
         # self.close_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_attatch_document, id=xrc.XRCID('button:attach_document'))
+        self.close_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_listofscenarios_button, id=xrc.XRCID('m_buttonListScen'))
 
         self.close_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_close_ecr, id=xrc.XRCID('button:modify_or_close_ecr'))
 
@@ -882,30 +814,6 @@ class ECRevApp(wx.App):
             if sub_system:
                 ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
                 ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
-
-            """components_list_cases = ['Air block', 'Air Deflector', 'Base', 'Brackets', 'Breaker', 'Bumper/retainer',
-                                     'Coil',
-                                     'Controller', 'Deck pans', 'Door/frame', 'End Assy', 'Fan', 'Glass', 'Horse Head',
-                                     'Kick plates', 'Lights', 'Other', 'Painted part', 'Piping', 'Pnl, Foam, Back',
-                                     'Pnl, Foam, Cnpy', 'Pnl, Foam, Front', 'PVC', 'Raceway', ' Rack', 'Sensor, Temp',
-                                     'Sensor, Pressure', 'Shelf standard', 'Shelves', 'Skin', 'Tub, foam', 'Valve',
-                                     'Wire racks']
-            sub_system_list_cases = ['Base', 'Coil Piping', 'Controls', 'Doors/frames', 'End', 'Foam', 'Kitting',
-                                     'Knock up',
-                                     'Lighting', 'Paint', 'Piping', 'Piping Option Pack', 'QA', 'Raceway',
-                                     'Sheet Metal',
-                                     'Subassy', 'Trimming', 'Wiring']
-
-            # components_list_cases.insert(0, '')
-            ctrl(self.close_ecr_dialog, 'choice:ecr_component').AppendItems(components_list_cases)
-            # ctrl(self.modify_ecr_dialog, 'choice:ecr_component').Insert(components_list_cases, 1)
-            # ctrl(self.modify_ecr_dialog, 'choice:ecr_component').SetStringSelection(components_list_cases)
-
-            # sub_system_list_cases.insert(0, '')
-            ctrl(self.close_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_system_list_cases)
-            # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system_list_cases, 1)
-            # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system_list_cases)
-            """
 
         # add severity options
         ctrl(self.close_ecr_dialog, 'choice:ecr_severity').AppendItems(['High', 'Medium', 'Low'])
@@ -1151,6 +1059,11 @@ class ECRevApp(wx.App):
                              id=xrc.XRCID('button:committee_ecrs_refresh'))
         ctrl(self.main_frame, 'list:committee_ecrs').printer_paper_type = wx.PAPER_11X17
 
+        #tab:Long Term Open ECRs
+        self.main_frame.Bind(wx.EVT_LIST_ITEM_SELECTED, Ecrs.on_select_ecr_item, id=xrc.XRCID('list:open_ecrs_lt'))
+        self.main_frame.Bind(wx.EVT_BUTTON, Ecrs.refresh_longterm_open_ecrs_list, id=xrc.XRCID('button:open_ecrs_refresh_lt'))
+        ctrl(self.main_frame, 'list:open_ecrs_lt').printer_paper_type = wx.PAPER_11X17
+
         ###tab: Search ECRs
         ###self.main_frame.Bind(wx.EVT_LIST_ITEM_SELECTED, Ecrs.on_select_ecr_item, id=xrc.XRCID('list:results'))
         ###self.main_frame.Bind(wx.EVT_BUTTON, Ecrs.export_search_results, id=xrc.XRCID('button:export'))
@@ -1160,6 +1073,7 @@ class ECRevApp(wx.App):
         self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:closed_ecrs'))
         self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:my_assigned_ecrs'))
         self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:committee_ecrs'))
+        self.main_frame.Bind(wx.EVT_LIST_ITEM_ACTIVATED, Ecrs.on_activated_ecr, id=xrc.XRCID('list:open_ecrs_lt'))
 
 
         '''
@@ -1253,7 +1167,7 @@ class ECRevApp(wx.App):
         #ctrl(self.modify_ecr_dialog, 'choice:stage').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
 
         # DBworks connection for checking part numbers entered in ecr description
-        try:
+        """try:
             ##1/0.
             self.dbworks_connection = pyodbc.connect(
                 'DSN=DBWorks;UID=rmiller;APP=ECRev;WSID=SEN30;DATABASE=DBWorks_Kysor;Trusted_Connection=Yes')
@@ -1261,7 +1175,7 @@ class ECRevApp(wx.App):
         except:
             self.dbworks_connection = None
             self.dbworks_cursor = None
-            print 'ERROR: Could not connect to DBWorks database.'
+            print 'ERROR: Could not connect to DBWorks database.'"""
 
         self.list_of_checked_words_entered = [(None, None)]
 
@@ -1373,9 +1287,19 @@ class ECRevApp(wx.App):
         self.C8 = []
         self.C9 = []
         self.C10 = []
+        #Choices
+        self.C = []
 
         for i in range(len(self.wq)):
-            if i == 0:
+            ctrl(self.workflow_dialog, 'WQST{}'.format(i+1)).Show()
+            ctrl(self.workflow_dialog, 'WQST{}'.format(i+1)).SetLabel(str(self.wq[i][0]))
+            ctrl(self.workflow_dialog, 'WQChoice{}'.format(i+1)).Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
+            ctrl(self.workflow_dialog, 'WQChoice{}'.format(i+1)).Show()
+            self.my_string = str(self.wqa[i][0])
+            self.C = [self.x.strip() for self.x in self.my_string.split(',')]
+            ctrl(self.workflow_dialog, 'WQChoice{}'.format(i+1)).SetItems(self.C)
+
+            """if i == 0:
                 ctrl(self.workflow_dialog, 'WQST1').Show()
                 ctrl(self.workflow_dialog, 'WQST1').SetLabel(str(self.wq[i][0]))
                 ctrl(self.workflow_dialog, 'WQChoice1').Bind(wx.EVT_MOUSEWHEEL, self.do_nothing)
@@ -1463,13 +1387,50 @@ class ECRevApp(wx.App):
                 ctrl(self.workflow_dialog, 'WQChoice10').Show()
                 self.my_string = str(self.wqa[i][0])
                 self.C10 = [self.x.strip() for self.x in self.my_string.split(',')]
-                ctrl(self.workflow_dialog, 'WQChoice10').SetItems(self.C10)
+                ctrl(self.workflow_dialog, 'WQChoice10').SetItems(self.C10)"""
 
 
         # Bind Assign Workflow Button to an event to pop up Workflow Dialog
         self.workflow_dialog.Bind(wx.EVT_BUTTON, Ecrs.get_workflow_steps, id=xrc.XRCID('m_buttonOK'))
         self.workflow_dialog.ShowModal()
 
+    def init_ListofScenarios_dialog(self):
+        self.ListofScenarios_dialog = self.res.LoadDialog(None, 'ListofScenarios')
+
+        self.ListofScenarios = ctrl(self.ListofScenarios_dialog, 'm_listScenario')
+        self.ListofScenariosGrid = []
+
+        self.wq = cursor.execute('Select Question from Workflow_Questions').fetchall()
+
+        self.Headers = []
+        self.Headers.append("Scenario No")
+        for j in range(len(self.wq)):
+            self.Headers.append(str(self.wq[j][0]))
+
+        self.ColumnCount = len(self.Headers)
+        for i in range(0, self.ColumnCount):
+            self.ListofScenarios.InsertColumn(i, self.Headers[i])
+            self.ListofScenarios.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+
+        #self.ListofScenarios.SetColumnWidth(0, 50)
+
+        del self.ListofScenariosGrid[:]
+        self.records = cursor.execute('Select top 1000 Scenario_No, Q1, Q2, Q3, Q4, Q5, Q6 from Decision_Matrix ').fetchall()
+
+        #Adpated code from Search.py
+        if self.records != None:
+            for index, record in enumerate(self.records):
+                self.ListofScenarios.InsertStringItem(sys.maxint, '#')
+
+                for column_index, column_value in enumerate(record):
+                    if column_value != None:
+                        self.ListofScenarios.SetStringItem(index, column_index, str(column_value).replace('\n', ' \\ '))
+
+        for column_index in range(len(self.Headers)):
+            self.ListofScenarios.SetColumnWidth(column_index, wx.LIST_AUTOSIZE_USEHEADER)
+
+
+        self.ListofScenarios_dialog.ShowModal()
 
     def init_modify_ecr_dialog(self, modify_ecr_id):
         if modify_ecr_id == '':
@@ -1494,7 +1455,7 @@ class ECRevApp(wx.App):
 
         ecr_status = cursor.execute('select top 1 status from ecrs where id = {}'.format(modify_ecr_id)).fetchone()[0]
         ecr_initiator = cursor.execute('select top 1 who_requested from ecrs where id = {}'.format(modify_ecr_id)).fetchone()[0]
-        print ecr_status, ecr_initiator
+
         if ecr_status == 'Open' or (ecr_initiator != General.app.current_user):
             ctrl(self.modify_ecr_dialog, 'm_buttonReopen').Disable()
 
@@ -1508,119 +1469,36 @@ class ECRevApp(wx.App):
         #Hide Assign Workflow Button if user in Systems Plant
         if Ecrs.Prod_Plant == 'Systems':
             ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Hide()
+            ctrl(self.modify_ecr_dialog, 'm_buttonListScen').Hide()
             ctrl(self.modify_ecr_dialog, 'm_panelWorkflow').Hide()
+            ctrl(self.modify_ecr_dialog, 'ReAssign_Workflow').Hide()
+            ctrl(self.modify_ecr_dialog, 'ScenarioNo').Hide()
 
         #Disable Workflow Assign button if it has already been assigned
-        try:
-            workflow_exists = cursor.execute('Select top 1 step_no from Ecrev_Status where Ecrev_no =?',modify_ecr_id).fetchone()[0]
-            if workflow_exists:
-                workflow = True
-        except:
-            workflow = False
+        workflow_exists = cursor.execute('Select top 1 step_no, Scenario_No from Ecrev_Status where Ecrev_no =?',modify_ecr_id).fetchone()
+        if workflow_exists:
+            workflow_modify = True
+            print workflow_exists[1]
+            ctrl(self.modify_ecr_dialog, 'ReAssign_Workflow').Enable()
+            ctrl(self.modify_ecr_dialog, 'ScenarioNo').SetValue('Scenario No' + '-' + str(workflow_exists[1]))
+        else:
+            workflow_modify = False
 
-        if workflow:
+        if workflow_modify:
             ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Disable()
-            workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status where Ecrev_no = ?',modify_ecr_id).fetchall()
+            workflow_info = cursor.execute('Select Assigned_to, Step_description, current_Status from Ecrev_Status '
+                                           'where Ecrev_no = ?',modify_ecr_id).fetchall()
 
-            if len(workflow_info) >= 1:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep1').SetValue(workflow_info[0][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho1').SetValue(workflow_info[0][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetLabel(workflow_info[0][2])
+            for k in range(len(workflow_info)):
+                ctrl(General.app.modify_ecr_dialog, 'm_textStep{}'.format(k+1)).SetValue(workflow_info[k][1])
+                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho{}'.format(k+1)).SetValue(workflow_info[k][0])
+                ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(k+1)).SetLabel(workflow_info[k][2])
 
-                if workflow_info[0][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Enable()
-
-                if workflow_info[0][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
-
-            if len(workflow_info) >= 2:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep2').SetValue(workflow_info[1][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho2').SetValue(workflow_info[1][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetLabel(workflow_info[1][2])
-
-                if workflow_info[1][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Enable()
-
-                if workflow_info[1][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep2').Disable()
-
-            if len(workflow_info) >= 3:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep3').SetValue(workflow_info[2][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho3').SetValue(workflow_info[2][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetLabel(workflow_info[2][2])
-
-                if workflow_info[2][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Enable()
-
-                if workflow_info[2][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep3').Disable()
-
-            if len(workflow_info) >= 4:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep4').SetValue(workflow_info[3][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho4').SetValue(workflow_info[3][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetLabel(workflow_info[3][2])
-
-                if workflow_info[3][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Enable()
-
-                if workflow_info[3][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep4').Disable()
-
-            if len(workflow_info) >= 5:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep5').SetValue(workflow_info[4][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho5').SetValue(workflow_info[4][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetLabel(workflow_info[4][2])
-
-                if workflow_info[4][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Enable()
-
-                if workflow_info[4][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep5').Disable()
-
-            if len(workflow_info) >= 6:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep6').SetValue(workflow_info[5][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho6').SetValue(workflow_info[5][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').SetLabel(workflow_info[5][2])
-
-                if workflow_info[5][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Enable()
-
-                if workflow_info[5][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep6').Disable()
-
-            if len(workflow_info) >= 7:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep7').SetValue(workflow_info[6][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho7').SetValue(workflow_info[6][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').SetLabel(workflow_info[6][2])
-
-                if workflow_info[6][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Enable()
-
-                if workflow_info[6][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Disable()
-
-            if len(workflow_info) >= 8:
-                ctrl(General.app.modify_ecr_dialog, 'm_textStep8').SetValue(workflow_info[7][1])
-                ctrl(General.app.modify_ecr_dialog, 'm_textCtrlWho8').SetValue(workflow_info[7][0])
-                ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').SetLabel(workflow_info[7][2])
-
-                if workflow_info[7][2] == 'Email Sent':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Enable()
-
-                if workflow_info[7][2] == 'Completed':
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').SetValue(True)
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Disable()
-
-            if len(workflow_info) < 8:
-                for r in range(len(workflow_info)+1,9):
-                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(r)).Disable()
+                if workflow_info[k][2] == 'Email Sent':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(k+1)).Enable()
+                elif workflow_info[k][2] == 'Completed':
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(k+1)).SetValue(True)
+                    ctrl(General.app.modify_ecr_dialog, 'm_checkStep{}'.format(k+1)).Disable()
 
         else:
             ctrl(General.app.modify_ecr_dialog, 'm_checkStep1').Disable()
@@ -1632,16 +1510,20 @@ class ECRevApp(wx.App):
             ctrl(General.app.modify_ecr_dialog, 'm_checkStep7').Disable()
             ctrl(General.app.modify_ecr_dialog, 'm_checkStep8').Disable()
 
+        # Disable Workflow Buttons if ECR is closed
+        if ecr_status == 'Closed':
+            ctrl(self.modify_ecr_dialog, 'm_buttonAssign').Disable()
+            ctrl(self.modify_ecr_dialog, 'ReAssign_Workflow').Disable()
 
         #Bind Workflow step status checkbox event
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep1'))
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep2'))
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep3'))
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep4'))
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep5'))
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep6'))
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep7'))
-        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.assign_ecrev_workflow_next_step, id=xrc.XRCID('m_checkStep8'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep1'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep2'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep3'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep4'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep5'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep6'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep7'))
+        self.modify_ecr_dialog.Bind(wx.EVT_CHECKBOX, Ecrs.get_workflow_step_completed, id=xrc.XRCID('m_checkStep8'))
 
         # show committee panel if authorized
         can_approve_first = cursor.execute(
@@ -1695,6 +1577,8 @@ class ECRevApp(wx.App):
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_approve_1_for_modify, id=xrc.XRCID('button:approve_1'))
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_approve_2_for_modify, id=xrc.XRCID('button:approve_2'))
         self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_Reopen_Ecr, id=xrc.XRCID('m_buttonReopen'))
+        self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_ReAssign_Workflow, id=xrc.XRCID('ReAssign_Workflow'))
+        self.modify_ecr_dialog.Bind(wx.EVT_BUTTON, Ecrs.on_click_listofscenarios_button, id=xrc.XRCID('m_buttonListScen'))
 
         self.modify_ecr_dialog.Bind(wx.EVT_CHOICE, Ecrs.on_choice_set_severity_default,
                                     id=xrc.XRCID('choice:ecr_document'))
@@ -1763,29 +1647,6 @@ class ECRevApp(wx.App):
             if sub_system:
                 ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system, 1)
                 ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system)
-
-            """components_list_cases = ['Air block', 'Air Deflector', 'Base', 'Brackets', 'Breaker', 'Bumper/retainer',
-                                     'Coil',
-                                     'Controller', 'Deck pans', 'Door/frame', 'End Assy', 'Fan', 'Glass', 'Horse Head',
-                                     'Kick plates', 'Lights', 'Other', 'Painted part', 'Piping', 'Pnl, Foam, Back',
-                                     'Pnl, Foam, Cnpy', 'Pnl, Foam, Front', 'PVC', 'Raceway', ' Rack', 'Sensor, Temp',
-                                     'Sensor, Pressure', 'Shelf standard', 'Shelves', 'Skin', 'Tub, foam', 'Valve',
-                                     'Wire racks']
-            sub_system_list_cases = ['Base', 'Coil Piping', 'Controls', 'Doors/frames', 'End', 'Foam', 'Kitting',
-                                     'Knock up',
-                                     'Lighting', 'Paint', 'Piping', 'Piping Option Pack', 'QA', 'Raceway',
-                                     'Sheet Metal',
-                                     'Subassy', 'Trimming', 'Wiring']
-
-            # components_list_cases.insert(0, '')
-            ctrl(self.modify_ecr_dialog, 'choice:ecr_component').AppendItems(components_list_cases)
-            # ctrl(self.modify_ecr_dialog, 'choice:ecr_component').Insert(components_list_cases, 1)
-            #ctrl(self.modify_ecr_dialog, 'choice:ecr_component').SetStringSelection(components_list_cases)
-
-            # sub_system_list_cases.insert(0, '')
-            ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').AppendItems(sub_system_list_cases)
-            # ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').Insert(sub_system_list_cases, 1)
-            #ctrl(self.modify_ecr_dialog, 'choice:ecr_sub_system').SetStringSelection(sub_system_list_cases)"""
 
         # add severity options
         ctrl(self.modify_ecr_dialog, 'choice:ecr_severity').AppendItems(['High', 'Medium', 'Low'])

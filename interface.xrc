@@ -1098,6 +1098,65 @@
 																		</object>
 																	</object>
 																</object>
+																<object class="notebookpage">
+																	<label>Long Term Open ECRs</label>
+																	<selected>0</selected>
+																	<object class="wxPanel" name="panel:all_open_longterm_ecrs">
+																		<style>wxTAB_TRAVERSAL</style>
+																		<object class="wxBoxSizer">
+																			<orient>wxVERTICAL</orient>
+																			<object class="sizeritem">
+																				<option>1</option>
+																				<flag>wxEXPAND|wxTOP|wxRIGHT|wxLEFT</flag>
+																				<border>5</border>
+																				<object class="wxListCtrl" name="list:open_ecrs_lt" subclass="BetterListCtrl.BetterListCtrl">
+																					<style>wxLC_HRULES|wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES</style>
+																				</object>
+																			</object>
+																			<object class="sizeritem">
+																				<option>0</option>
+																				<flag>wxEXPAND</flag>
+																				<border>5</border>
+																				<object class="wxBoxSizer">
+																					<orient>wxHORIZONTAL</orient>
+																					<object class="sizeritem">
+																						<option>0</option>
+																						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<object class="wxStaticText" name="label:ecr_stats_lt">
+																							<label># open, # late, # due today</label>
+																							<wrap>-1</wrap>
+																						</object>
+																					</object>
+																					<object class="spacer">
+																						<option>1</option>
+																						<flag>wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<size>0,0</size>
+																					</object>
+																					<object class="sizeritem">
+																						<option>0</option>
+																						<flag>wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM|wxLEFT</flag>
+																						<border>5</border>
+																						<object class="wxStaticText" name="label:open_ecrs_last_updated_lt">
+																							<label>List last updated 00:00 PM</label>
+																							<wrap>-1</wrap>
+																						</object>
+																					</object>
+																					<object class="sizeritem">
+																						<option>0</option>
+																						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<object class="wxButton" name="button:open_ecrs_refresh_lt">
+																							<label>Force List Refresh</label>
+																							<default>0</default>
+																						</object>
+																					</object>
+																				</object>
+																			</object>
+																		</object>
+																	</object>
+																</object>
 															</object>
 														</object>
 													</object>
@@ -4718,6 +4777,43 @@
 												<default>0</default>
 											</object>
 										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxALL</flag>
+											<border>5</border>
+											<object class="wxButton" name="ReAssign_Workflow">
+												<enabled>0</enabled>
+												<label>ReAssign Workflow</label>
+												<default>0</default>
+											</object>
+										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxALL</flag>
+											<border>5</border>
+											<object class="wxTextCtrl" name="ScenarioNo">
+												<style>wxTE_READONLY</style>
+												<size>200,-1</size>
+												<bg>#f0f0f0</bg>
+												<fg>#3399ff</fg>
+												<font>
+													<size>12</size>
+													<style>normal</style>
+													<weight>bold</weight>
+													<underlined>0</underlined>
+												</font>
+												<value></value>
+											</object>
+										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxALL</flag>
+											<border>5</border>
+											<object class="wxButton" name="m_buttonListScen">
+												<label>Valid Scenarios List</label>
+												<default>0</default>
+											</object>
+										</object>
 									</object>
 								</object>
 								<object class="sizeritem">
@@ -6235,6 +6331,29 @@
 							<default>0</default>
 						</object>
 					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+	<object class="wxDialog" name="ListofScenarios">
+		<style>wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
+		<size>1024,960</size>
+		<title>List of Scenarios</title>
+		<centered>1</centered>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxListCtrl" name="m_listScenario">
+					<style>wxLC_HRULES|wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES</style>
+					<size>1024,960</size>
+					<font>
+						<style>normal</style>
+						<weight>normal</weight>
+						<underlined>0</underlined>
+					</font>
 				</object>
 			</object>
 		</object>
